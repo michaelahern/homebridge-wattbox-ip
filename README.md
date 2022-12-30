@@ -2,7 +2,7 @@
 
 [![License](https://badgen.net/github/license/michaelahern/homebridge-airthings)](LICENSE)
 
-A [Homebridge](https://homebridge.io) plugin for [WattBox IP Power](https://www.airthings.com) devices.
+A [Homebridge](https://homebridge.io) plugin for [WattBox IP Power](https://www.snapav.com/shop/en/snapav/wattbox-ip-power) devices.
 
 ## Requirements
 
