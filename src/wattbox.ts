@@ -46,6 +46,12 @@ export class WattboxDevice {
       const outletCountMatch = outletCountResponse.toString().match(/\?OutletCount=(.*)\n/);
       const outletCount = outletCountMatch ? parseInt(outletCountMatch[1]) : 0;
 
+      // ?OutletName
+      await client.write("?OutletName\n");
+      const outletNameResponse = (await client.read()) as String;
+      const outletNameMatch = outletNameResponse.match(/\?OutletName=(.*)\n/);
+      const outletNames = outletNameMatch ? outletNameMatch[1] : "";
+
       // ?UPSConnection
       await client.write("?UPSConnection\n");
       const upsConnectionResponse = (await client.read()) as String;
@@ -57,14 +63,19 @@ export class WattboxDevice {
         serviceTag: serviceTag,
         firmware: firmware,
         outletCount: outletCount,
+        outletNames: outletNames.split(",").map(x => x.substring(1, x.length - 1)),
         upsConnection: upsConnection
       };
     }
     finally {
-      // !Exit
-      await client.write("!Exit\n");
-      await client.end();
-      mutexRelease();
+      try {
+        // !Exit
+        await client.write("!Exit\n");
+        await client.end();
+      }
+      finally {
+        mutexRelease();
+      }
     }
   }
 
@@ -74,12 +85,6 @@ export class WattboxDevice {
 
     try {
       await this.login(client);
-
-      // ?OutletName
-      await client.write("?OutletName\n");
-      const outletNameResponse = (await client.read()) as String;
-      const outletNameMatch = outletNameResponse.match(/\?OutletName=(.*)\n/);
-      const outletNames = outletNameMatch ? outletNameMatch[1] : "";
 
       // ?OutletStatus
       await client.write("?OutletStatus\n");
@@ -94,17 +99,47 @@ export class WattboxDevice {
       const upsStatus = upsStatusMatch ? upsStatusMatch[1] : "0,0,Unknown,False";
 
       return <WattboxDeviceState>{
-        outletName: outletNames.split(",").map(x => x.substring(1, x.length - 1)),
-        outletStatus: outletStatuses.split(",").map(x => Boolean(parseInt(x)).valueOf()),
+        outletStates: outletStatuses.split(",").map(x => Boolean(parseInt(x)).valueOf()),
         batteryLevel: parseInt(upsStatus.split(",")[0]),
         powerLost: upsStatus.split(",")[3] === "True"
       };
     }
     finally {
-      // !Exit
-      await client.write("!Exit\n");
-      await client.end();
-      mutexRelease();
+      try {
+        // !Exit
+        await client.write("!Exit\n");
+        await client.end();
+      }
+      finally {
+        mutexRelease();
+      }
+    }
+  }
+
+  public async getOutletState(outlet: number) {
+    const client = new PromiseSocket();
+    const mutexRelease = await this.mutex.acquire();
+
+    try {
+      await this.login(client);
+
+      // ?OutletStatus
+      await client.write("?OutletStatus\n");
+      const outletStatusResponse = (await client.read()) as String;
+      const outletStatusMatch = outletStatusResponse.match(/\?OutletStatus=(.*)\n/);
+      const outletStatuses = outletStatusMatch ? outletStatusMatch[1] : "";
+
+      return outletStatuses.split(",").map(x => Boolean(parseInt(x)).valueOf())[outlet - 1];
+    }
+    finally {
+      try {
+        // !Exit
+        await client.write("!Exit\n");
+        await client.end();
+      }
+      finally {
+        mutexRelease();
+      }
     }
   }
 
@@ -119,16 +154,20 @@ export class WattboxDevice {
       await client.write(`!OutletSet=${outlet},${action}\n`);
     }
     finally {
-      // !Exit
-      await client.write("!Exit\n");
-      await client.end();
-      mutexRelease();
+      try {
+        // !Exit
+        await client.write("!Exit\n");
+        await client.end();
+      }
+      finally {
+        mutexRelease();
+      }
     }
   }
 
   private async login(client: PromiseSocket<Socket>) {
     client.setEncoding("utf8");
-    client.setTimeout(10 * 1000);
+    client.setTimeout(10000);
 
     await client.connect(23, this.host);
 
@@ -153,12 +192,12 @@ export interface WattboxDeviceInfo {
   serviceTag: string;
   firmware: string;
   outletCount: number;
+  outletNames: string[];
   upsConnection: boolean;
 }
 
 export interface WattboxDeviceState {
-  outletName: string[];
-  outletStatus: boolean[];
+  outletStates: boolean[];
   batteryLevel: number;
   powerLost: boolean;
 }
