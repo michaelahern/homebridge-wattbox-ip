@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-wattbox-tcp",
+  "name": "homebridge-wattbox-ip",
   "version": "0.1.0",
   "description": "A Homebridge plugin for WattBox IP Power devices.",
   "keywords": [
@@ -7,9 +7,9 @@
     "homebridge",
     "homebridge-plugin"
   ],
-  "homepage": "https://github.com/michaelahern/homebridge-wattbox-tcp",
+  "homepage": "https://github.com/michaelahern/homebridge-wattbox-ip",
   "bugs": {
-    "url": "http://github.com/michaelahern/homebridge-wattbox-tcp/issues"
+    "url": "http://github.com/michaelahern/homebridge-wattbox-ip/issues"
   },
   "license": "ISC",
   "author": "Michael Ahern <michael.ahern@gmail.com>",
@@ -24,7 +24,7 @@
   "main": "dist/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/michaelahern/homebridge-wattbox-tcp.git"
+    "url": "git://github.com/michaelahern/homebridge-wattbox-ip.git"
   },
   "scripts": {
     "build": "rimraf dist && tsc",

@@ -1,4 +1,4 @@
-# Homebridge WattBox
+# Homebridge WattBox IP Power
 
 [![License](https://badgen.net/github/license/michaelahern/homebridge-airthings)](LICENSE)
 
