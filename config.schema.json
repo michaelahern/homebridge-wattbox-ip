@@ -1,5 +1,5 @@
 {
-    "pluginAlias": "WattBoxPlatform",
+    "pluginAlias": "WattBox IP",
     "pluginType": "platform",
     "singular": true,
     "schema": {

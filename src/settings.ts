@@ -1,2 +1,2 @@
-export const PLATFORM_NAME = "WattBoxPlatform";
+export const PLATFORM_NAME = "WattBox IP";
 export const PLUGIN_NAME = "homebridge-wattbox-ip";
