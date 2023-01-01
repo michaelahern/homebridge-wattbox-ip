@@ -15,7 +15,7 @@ export class WattBoxPlatformAccessory {
     this.log = this.platform.log;
     this.logPrefix = `[${this.accessory.displayName}] [${this.outletId.toString().padStart(2)}]`;
 
-    const outletServiceId = `${this.context.serialNumber}:${this.outletId}`;
+    const outletServiceId = `${this.context.deviceInfo.serviceTag}:${this.outletId}`;
     const outletService = (this.accessory.getServiceById(this.platform.api.hap.Service.Outlet, outletServiceId) || this.accessory.addService(this.platform.api.hap.Service.Outlet, `${this.outletId}: ${this.outletName}`, outletServiceId))
       .setCharacteristic(this.platform.api.hap.Characteristic.Name, `${this.outletId} ${this.outletName}`);
 
@@ -24,7 +24,7 @@ export class WattBoxPlatformAccessory {
       .onSet(this.setOn.bind(this));
 
     this.deviceApi.subscribeDeviceStatus(
-      this.context.serialNumber,
+      this.context.deviceInfo.serviceTag,
       (deviceStatus) => {
         this.log.info(`${this.logPrefix} status -> ${WattBoxOutletStatus[this.outletStatus]}:${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
 
@@ -62,5 +62,4 @@ export class WattBoxPlatformAccessory {
 
 export interface WattBoxPlatformAccessoryContext {
   deviceInfo: WattBoxDeviceInfo;
-  serialNumber: string;
 }
