@@ -56,14 +56,15 @@ export class WattBoxPlatformAccessory {
   }
 
   private async setOn(value: CharacteristicValue) {
+    const action = value ? WattBoxOutletAction.ON : WattBoxOutletAction.OFF;
+    this.log.debug(`${this.logPrefix} setOn(${WattBoxOutletStatus[action]})`)
+
     try {
-      const action = value ? WattBoxOutletAction.ON : WattBoxOutletAction.OFF;
-      this.log.debug(`${this.logPrefix} setOn(${WattBoxOutletStatus[action]})`)
       await this.deviceApi.setOutletAction(this.outletId, action);
       this.outletStatus = value ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF;
     }
     catch (error: unknown) {
-      this.log.error(`${this.logPrefix} setOn(${value}) -> ${(<Error>error).message}`)
+      this.log.error(`${this.logPrefix} setOn(${WattBoxOutletStatus[action]}) -> ${(<Error>error).message}`)
       throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
     }
   }
