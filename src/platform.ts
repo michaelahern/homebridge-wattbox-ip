@@ -56,7 +56,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         }
       }
 
-      accessory.getService(this.api.hap.Service.AccessoryInformation)!
+      (accessory.getService(this.api.hap.Service.AccessoryInformation) || accessory.addService(this.api.hap.Service.AccessoryInformation))
         .setCharacteristic(this.api.hap.Characteristic.Name, deviceConfig.name)
         .setCharacteristic(this.api.hap.Characteristic.Manufacturer, 'WattBox')
         .setCharacteristic(this.api.hap.Characteristic.Model, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.model)

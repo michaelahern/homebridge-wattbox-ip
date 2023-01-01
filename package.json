@@ -27,9 +27,14 @@
     "url": "git://github.com/michaelahern/homebridge-wattbox-ip.git"
   },
   "scripts": {
-    "build": "rimraf dist && tsc",
-    "clean": "rimraf dist",
-    "prepublishOnly": "npm run build"
+    "eslint": "eslint src/**.ts --max-warnings=0",
+    "eslint-fix": "eslint src/**.ts --max-warnings=0 --fix",
+    "lint": "npm run eslint",
+    "lint-fix": "npm run eslint-fix",
+    "fmt": "npm run lint-fix",
+    "build": "npm run clean && tsc",
+    "clean": "rimraf ./dist",
+    "prepublishOnly": "npm run lint && npm run build"
   },
   "dependencies": {
     "async-mutex": "^0.4.0",
@@ -39,6 +44,9 @@
   "devDependencies": {
     "@types/node": "~18",
     "@types/pubsub-js": "~1.8.3",
+    "@typescript-eslint/eslint-plugin": "~5.47",
+    "@typescript-eslint/parser": "~5.47",
+    "eslint": "~8.23",
     "homebridge": "~1.6.0",
     "rimraf": "~3.0",
     "typescript": "~4.9"

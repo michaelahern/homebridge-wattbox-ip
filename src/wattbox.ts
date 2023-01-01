@@ -26,31 +26,31 @@ export class WattBoxDeviceApi {
 
       // ?Model
       await client.write("?Model\n");
-      const modelResponse = (await client.read()) as String;
+      const modelResponse = (await client.read()) as string;
       const modelMatch = modelResponse.match(/\?Model=(.*)\n/);
       const model = modelMatch ? modelMatch[1] : "Unknown";
 
       // ?ServiceTag
       await client.write("?ServiceTag\n");
-      const serviceTagResponse = (await client.read()) as String;
+      const serviceTagResponse = (await client.read()) as string;
       const serviceTagMatch = serviceTagResponse.match(/\?ServiceTag=(.*)\n/);
       const serviceTag = serviceTagMatch ? serviceTagMatch[1] : "Unknown";
 
       // ?Firmware
       await client.write("?Firmware\n");
-      const firmwareResponse = (await client.read()) as String;
+      const firmwareResponse = (await client.read()) as string;
       const firmwareMatch = firmwareResponse.match(/\?Firmware=(.*)\n/);
       const firmware = firmwareMatch ? firmwareMatch[1] : "Unknown";
 
       // ?OutletName
       await client.write("?OutletName\n");
-      const outletNameResponse = (await client.read()) as String;
+      const outletNameResponse = (await client.read()) as string;
       const outletNameMatch = outletNameResponse.match(/\?OutletName=(.*)\n/);
       const outletNames = outletNameMatch ? outletNameMatch[1] : "";
 
       // ?UPSConnection
       await client.write("?UPSConnection\n");
-      const upsConnectionResponse = (await client.read()) as String;
+      const upsConnectionResponse = (await client.read()) as string;
       const upsConnectionMatch = upsConnectionResponse.toString().match(/\?UPSConnection=(.*)\n/);
       const upsConnection = upsConnectionMatch ? Boolean(parseInt(upsConnectionMatch[1])) : false;
 
@@ -76,18 +76,18 @@ export class WattBoxDeviceApi {
 
       // ?OutletStatus
       await client.write("?OutletStatus\n");
-      const outletStatusResponse = (await client.read()) as String;
+      const outletStatusResponse = (await client.read()) as string;
       const outletStatusMatch = outletStatusResponse.match(/\?OutletStatus=(.*)\n/);
       const outletStatus = outletStatusMatch ? outletStatusMatch[1] : "";
 
       // ?UPSStatus
       await client.write("?UPSStatus\n");
-      const upsStatusResponse = (await client.read()) as String;
+      const upsStatusResponse = (await client.read()) as string;
       const upsStatusMatch = upsStatusResponse.match(/\?UPSStatus=(.*)\n/);
       const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
 
       return <WattBoxDeviceStatus>{
-        outletStatus: outletStatus.split(",").map(x => Boolean(parseInt(x)) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
+        outletStatus: outletStatus.split(",").map(x => parseInt(x) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
         batteryLevel: upsStatus ? parseInt(upsStatus.split(",")[0]) : undefined,
         powerLost: upsStatus ? upsStatus.split(",")[3] == "True" : undefined
       };
@@ -142,7 +142,7 @@ export class WattBoxDeviceApi {
 
       // !OutletSet=Outlet,Action[,Delay]
       await client.write(`!OutletSet=${id},${WattBoxOutletAction[action]}\n`);
-      const outletSetResponse = (await client.read()) as String;
+      const outletSetResponse = (await client.read()) as string;
       if (outletSetResponse.includes("#Error")) {
         throw new Error("Outlet Set Action Error!");
       }
@@ -169,7 +169,7 @@ export class WattBoxDeviceApi {
     await client.write(`${this.password}\n`);
 
     // Successfully Logged In! or Invalid Login
-    const loginResponse = (await client.read()) as String;
+    const loginResponse = (await client.read()) as string;
     if (loginResponse.includes("Invalid")) {
       throw new Error ("Invalid Login!");
     }
@@ -181,7 +181,9 @@ export class WattBoxDeviceApi {
       await client.write("!Exit\n");
       await client.end();
     }
-    catch { }
+    catch {
+      // continue, client may have already closed.. 
+    }
     finally {
       mutexRelease();
     }

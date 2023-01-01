@@ -23,6 +23,8 @@ export class WattBoxPlatformAccessory {
       .onGet(this.getOn.bind(this))
       .onSet(this.setOn.bind(this));
 
+    const batteryService = this.accessory.getService(this.platform.api.hap.Service.Battery);
+
     this.deviceApi.subscribeDeviceStatus(
       this.context.deviceInfo.serviceTag,
       (deviceStatus) => {
@@ -33,8 +35,8 @@ export class WattBoxPlatformAccessory {
           outletServiceOnCharacteristic.updateValue(!!deviceStatus.outletStatus[this.outletId - 1]);
         }
 
-        if (this.context.deviceInfo.upsConnection && deviceStatus.batteryLevel !== undefined && deviceStatus.powerLost !== undefined) {
-          this.accessory.getService(this.platform.api.hap.Service.Battery)!
+        if (batteryService && deviceStatus.batteryLevel !== undefined && deviceStatus.powerLost !== undefined) {
+          batteryService
             .updateCharacteristic(this.platform.api.hap.Characteristic.BatteryLevel, deviceStatus.batteryLevel)
             .updateCharacteristic(this.platform.api.hap.Characteristic.ChargingState, deviceStatus.powerLost ? this.platform.api.hap.Characteristic.ChargingState.NOT_CHARGING : this.platform.api.hap.Characteristic.ChargingState.CHARGING)
             .updateCharacteristic(this.platform.api.hap.Characteristic.StatusLowBattery, deviceStatus.powerLost ? this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
