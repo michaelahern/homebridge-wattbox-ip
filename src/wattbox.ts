@@ -1,10 +1,10 @@
 import { Mutex, MutexInterface } from "async-mutex";
 import { Socket } from "net";
-import { PromiseSocket } from "promise-socket"
+import { PromiseSocket } from "promise-socket";
 
-import PubSub from "pubsub-js"
+import PubSub from "pubsub-js";
 
-export class WattboxDevice {
+export class WattBoxDeviceApi {
   private readonly host: string;
   private readonly username: string;
   private readonly password: string;
@@ -54,7 +54,7 @@ export class WattboxDevice {
       const upsConnectionMatch = upsConnectionResponse.toString().match(/\?UPSConnection=(.*)\n/);
       const upsConnection = upsConnectionMatch ? Boolean(parseInt(upsConnectionMatch[1])) : false;
 
-      return <WattboxDeviceInfo>{
+      return <WattBoxDeviceInfo>{
         model: model,
         serviceTag: serviceTag,
         firmware: firmware,
@@ -86,8 +86,8 @@ export class WattboxDevice {
       const upsStatusMatch = upsStatusResponse.match(/\?UPSStatus=(.*)\n/);
       const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
 
-      return <WattboxDeviceStatus>{
-        outletStatus: outletStatus.split(",").map(x => Boolean(parseInt(x)) ? WattboxOutletStatus.ON : WattboxOutletStatus.OFF),
+      return <WattBoxDeviceStatus>{
+        outletStatus: outletStatus.split(",").map(x => Boolean(parseInt(x)) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
         batteryLevel: upsStatus ? parseInt(upsStatus.split(",")[0]) : undefined,
         powerLost: upsStatus ? upsStatus.split(",")[3] == "True" : undefined
       };
@@ -97,14 +97,12 @@ export class WattboxDevice {
     }
   }
 
-  public subscribeDeviceStatus(serviceTag: string, func: (deviceStatus: WattboxDeviceStatus) => void): PubSubJS.Token {
+  public subscribeDeviceStatus(serviceTag: string, func: (deviceStatus: WattBoxDeviceStatus) => void): PubSubJS.Token {
     const topic = `homebridge:wattbox:${serviceTag}`;
     const token = PubSub.subscribe(topic, (_, data) => {
-      if (!data) {
-        return;
+      if (data) {
+        func(data);
       }
-
-      func(data);
     });
 
     if (PubSub.countSubscriptions(topic) === 1) {
@@ -121,8 +119,8 @@ export class WattboxDevice {
             // TODO: Log...
           }
         }
-        
-        setTimeout(poll, 30000);
+
+        setTimeout(poll, 20000);
       }
 
       setTimeout(poll, 0);
@@ -135,7 +133,7 @@ export class WattboxDevice {
     PubSub.unsubscribe(token);
   }
 
-  public async setOutletAction(id: number, action: WattboxOutletAction) {
+  public async setOutletAction(id: number, action: WattBoxOutletAction) {
     const client = new PromiseSocket();
     const mutexRelease = await this.mutex.acquire();
 
@@ -143,10 +141,10 @@ export class WattboxDevice {
       await this.login(client);
 
       // !OutletSet=Outlet,Action[,Delay]
-      await client.write(`!OutletSet=${id},${WattboxOutletAction[action]}\n`);
+      await client.write(`!OutletSet=${id},${WattBoxOutletAction[action]}\n`);
       const outletSetResponse = (await client.read()) as String;
       if (outletSetResponse.includes("#Error")) {
-        throw "Outlet Set Error" 
+        throw "Outlet Set Action Error!"
       }
     }
     finally {
@@ -173,7 +171,7 @@ export class WattboxDevice {
     // Successfully Logged In! or Invalid Login
     const loginResponse = (await client.read()) as String;
     if (loginResponse.includes("Invalid")) {
-      throw "Invalid Login";
+      throw "Invalid Login!";
     }
   }
 
@@ -189,7 +187,7 @@ export class WattboxDevice {
   }
 }
 
-export interface WattboxDeviceInfo {
+export interface WattBoxDeviceInfo {
   model: string;
   serviceTag: string;
   firmware: string;
@@ -197,20 +195,20 @@ export interface WattboxDeviceInfo {
   upsConnection: boolean;
 }
 
-export interface WattboxDeviceStatus {
-  outletStatus: WattboxOutletStatus[];
+export interface WattBoxDeviceStatus {
+  outletStatus: WattBoxOutletStatus[];
   batteryLevel?: number;
   powerLost?: boolean;
 }
 
-export enum WattboxOutletAction {
+export enum WattBoxOutletAction {
   OFF = 0,
   ON = 1,
   TOGGLE = 2,
   RESET = 3
 }
 
-export enum WattboxOutletStatus {
+export enum WattBoxOutletStatus {
   UNKNOWN = -1,
   OFF = 0,
   ON = 1

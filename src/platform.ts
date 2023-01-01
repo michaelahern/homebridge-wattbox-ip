@@ -1,23 +1,18 @@
-import { API, Characteristic, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service } from 'homebridge';
+import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig } from "homebridge";
 
-import { WattboxConfig } from './config';
-import { WattboxPlatformAccessory, WattBoxPlatformAccessoryContext } from './platformAccessory';
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { WattboxDevice } from './wattbox';
+import { WattBoxConfig } from "./config";
+import { WattBoxPlatformAccessory, WattBoxPlatformAccessoryContext } from "./platformAccessory";
+import { PLATFORM_NAME, PLUGIN_NAME } from "./settings";
+import { WattBoxDeviceApi } from "./wattbox";
 
-type WattBoxHomebridgePlatformConfig = PlatformConfig & WattboxConfig;
+type WattBoxHomebridgePlatformConfig = PlatformConfig & WattBoxConfig;
 
-export class WattboxPlatform implements DynamicPlatformPlugin {
-  public readonly Service: typeof Service = this.api.hap.Service;
-  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
-
-
+export class WattBoxPlatform implements DynamicPlatformPlugin {
+  public readonly accessories: PlatformAccessory[] = [];
   public readonly config: WattBoxHomebridgePlatformConfig;
 
-  public readonly accessories: PlatformAccessory[] = [];
-
   constructor(public readonly log: Logger, public readonly platformConfig: PlatformConfig, public readonly api: API) {
-    this.log.debug('Finished initializing platform:', this.platformConfig.name);
+    this.log.info('Finished initializing platform:', this.platformConfig.name);
 
     this.config = <WattBoxHomebridgePlatformConfig>this.platformConfig;
 
@@ -27,7 +22,7 @@ export class WattboxPlatform implements DynamicPlatformPlugin {
   }
 
   public configureAccessory(accessory: PlatformAccessory) {
-    this.log.info('Loading accessory from cache:', accessory.displayName);
+    this.log.info('Loading Accessory from Cache:', accessory.displayName);
     this.accessories.push(accessory);
   }
 
@@ -38,38 +33,37 @@ export class WattboxPlatform implements DynamicPlatformPlugin {
       const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
       const accessory = existingAccessory ?? new this.api.platformAccessory(deviceConfig.name, uuid);
 
-      const wattboxDevice = new WattboxDevice(deviceConfig.host, deviceConfig.username, deviceConfig.password);
+      const deviceApi = new WattBoxDeviceApi(deviceConfig.host, deviceConfig.username, deviceConfig.password);
 
       try {
-        const deviceInfo = await wattboxDevice.getDeviceInfo();
+        const deviceInfo = await deviceApi.getDeviceInfo();
         accessory.context = <WattBoxPlatformAccessoryContext>{
           deviceInfo: deviceInfo,
           serialNumber: deviceConfig.serviceTag
         };
       }
       catch (error: unknown) {
-        this.log.error((<Error>error).message);
+        this.log.error(`[${accessory.displayName}] ${(<Error>error).message}`);
 
         if (existingAccessory) {
-          this.log.error("existing Accessory, Loading from Cache...");
+          this.log.error(`[${accessory.displayName}] existing Accessory, Loading from Cache...`);
         }
         else {
-          this.log.error("New Accessory, Cannot Configure Now!!!");
+          this.log.error(`[${accessory.displayName}] New Accessory, Cannot Configure Now!!!`);
           continue;
         }
       }
 
-
-      accessory.getService(this.Service.AccessoryInformation)!
-        .setCharacteristic(this.Characteristic.Name, deviceConfig.name)
-        .setCharacteristic(this.Characteristic.Manufacturer, 'WattBox')
-        .setCharacteristic(this.Characteristic.Model, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.model)
-        .setCharacteristic(this.Characteristic.SerialNumber, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.serviceTag)
-        .setCharacteristic(this.Characteristic.FirmwareRevision, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.firmware);
+      accessory.getService(this.api.hap.Service.AccessoryInformation)!
+        .setCharacteristic(this.api.hap.Characteristic.Name, deviceConfig.name)
+        .setCharacteristic(this.api.hap.Characteristic.Manufacturer, 'WattBox')
+        .setCharacteristic(this.api.hap.Characteristic.Model, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.model)
+        .setCharacteristic(this.api.hap.Characteristic.SerialNumber, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.serviceTag)
+        .setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.firmware);
 
       for (let i = 0; i < (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames.length; i++) {
-        this.log.info(`${i + 1}: ${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]}`);
-        new WattboxPlatformAccessory(this, accessory, wattboxDevice, i + 1, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]);
+        this.log.info(`[${accessory.displayName}] [${(i + 1).toString().padStart(2)}] Creating accessory handler with default name "${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]}"`);
+        new WattBoxPlatformAccessory(this, accessory, deviceApi, i + 1, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]);
       }
 
       if (existingAccessory) {
@@ -80,12 +74,12 @@ export class WattboxPlatform implements DynamicPlatformPlugin {
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
         uuids.add(uuid);
       }
+    }
 
-      const orphanedAccessories = this.accessories.filter((accessory) => !uuids.has(accessory.UUID));
-      if (orphanedAccessories.length > 0) {
-        this.log.info('Removing orphaned accessories from cache: ', orphanedAccessories.map(({ displayName }) => displayName).join(', '));
-        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, orphanedAccessories);
-      }
+    const orphanedAccessories = this.accessories.filter((accessory) => !uuids.has(accessory.UUID));
+    if (orphanedAccessories.length > 0) {
+      this.log.info('Removing orphaned accessories from cache: ', orphanedAccessories.map(({ displayName }) => displayName).join(', '));
+      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, orphanedAccessories);
     }
   }
 }

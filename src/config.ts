@@ -1,8 +1,8 @@
-export interface WattboxConfig {
-    devices: WattboxDeviceConfig[],
+export interface WattBoxConfig {
+    devices: WattBoxDeviceConfig[],
 }
 
-export interface WattboxDeviceConfig {
+export interface WattBoxDeviceConfig {
     name: string,
     host: string,
     username: string,
