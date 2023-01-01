@@ -144,7 +144,7 @@ export class WattBoxDeviceApi {
       await client.write(`!OutletSet=${id},${WattBoxOutletAction[action]}\n`);
       const outletSetResponse = (await client.read()) as String;
       if (outletSetResponse.includes("#Error")) {
-        throw "Outlet Set Action Error!"
+        throw new Error("Outlet Set Action Error!");
       }
     }
     finally {
@@ -171,7 +171,7 @@ export class WattBoxDeviceApi {
     // Successfully Logged In! or Invalid Login
     const loginResponse = (await client.read()) as String;
     if (loginResponse.includes("Invalid")) {
-      throw "Invalid Login!";
+      throw new Error ("Invalid Login!");
     }
   }
 
@@ -181,6 +181,7 @@ export class WattBoxDeviceApi {
       await client.write("!Exit\n");
       await client.end();
     }
+    catch { }
     finally {
       mutexRelease();
     }

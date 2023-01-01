@@ -37,7 +37,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         const deviceInfo = await deviceApi.getDeviceInfo();
 
         if (deviceConfig.serviceTag != deviceInfo.serviceTag) {
-          this.log.warn(`[${accessory.displayName}] Service Tag Mismatch Detected!`);
+          this.log.warn(`[${accessory.displayName}] Service tag mismatch detected!`);
         }
 
         accessory.context = <WattBoxPlatformAccessoryContext>{
@@ -48,10 +48,10 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         this.log.error(`[${accessory.displayName}] ${(<Error>error).message}`);
 
         if (existingAccessory) {
-          this.log.error(`[${accessory.displayName}] Using Cache to Initialize Accessory, Check Configuration!`);
+          this.log.error(`[${accessory.displayName}] Using cache to initialize accessory, check configuration!`);
         }
         else {
-          this.log.error(`[${accessory.displayName}] Cannot Initialize a New Accessory, Check Configuration!`);
+          this.log.error(`[${accessory.displayName}] Cannot initialize new device/accessory, check configuration!`);
           continue;
         }
       }
