@@ -1,12 +1,14 @@
-import { Mutex } from "async-mutex";
+import { Mutex, MutexInterface } from "async-mutex";
 import { Socket } from "net";
 import { PromiseSocket } from "promise-socket"
 
+import PubSub from "pubsub-js"
+
 export class WattboxDevice {
-  private host: string;
-  private username: string;
-  private password: string;
-  private mutex: Mutex;
+  private readonly host: string;
+  private readonly username: string;
+  private readonly password: string;
+  private readonly mutex: Mutex;
 
   constructor(host: string, username: string, password: string) {
     this.host = host;
@@ -40,12 +42,6 @@ export class WattboxDevice {
       const firmwareMatch = firmwareResponse.match(/\?Firmware=(.*)\n/);
       const firmware = firmwareMatch ? firmwareMatch[1] : "Unknown";
 
-      // ?OutletCount
-      await client.write("?OutletCount\n");
-      const outletCountResponse = (await client.read()) as String;
-      const outletCountMatch = outletCountResponse.toString().match(/\?OutletCount=(.*)\n/);
-      const outletCount = outletCountMatch ? parseInt(outletCountMatch[1]) : 0;
-
       // ?OutletName
       await client.write("?OutletName\n");
       const outletNameResponse = (await client.read()) as String;
@@ -56,30 +52,22 @@ export class WattboxDevice {
       await client.write("?UPSConnection\n");
       const upsConnectionResponse = (await client.read()) as String;
       const upsConnectionMatch = upsConnectionResponse.toString().match(/\?UPSConnection=(.*)\n/);
-      const upsConnection = upsConnectionMatch ? Boolean(parseInt(upsConnectionMatch[1])).valueOf() : false;
+      const upsConnection = upsConnectionMatch ? Boolean(parseInt(upsConnectionMatch[1])) : false;
 
       return <WattboxDeviceInfo>{
         model: model,
         serviceTag: serviceTag,
         firmware: firmware,
-        outletCount: outletCount,
         outletNames: outletNames.split(",").map(x => x.substring(1, x.length - 1)),
         upsConnection: upsConnection
       };
     }
     finally {
-      try {
-        // !Exit
-        await client.write("!Exit\n");
-        await client.end();
-      }
-      finally {
-        mutexRelease();
-      }
+      await this.logout(client, mutexRelease);
     }
   }
 
-  public async getDeviceState() {
+  public async getDeviceStatus() {
     const client = new PromiseSocket();
     const mutexRelease = await this.mutex.acquire();
 
@@ -90,78 +78,79 @@ export class WattboxDevice {
       await client.write("?OutletStatus\n");
       const outletStatusResponse = (await client.read()) as String;
       const outletStatusMatch = outletStatusResponse.match(/\?OutletStatus=(.*)\n/);
-      const outletStatuses = outletStatusMatch ? outletStatusMatch[1] : "";
+      const outletStatus = outletStatusMatch ? outletStatusMatch[1] : "";
 
       // ?UPSStatus
       await client.write("?UPSStatus\n");
       const upsStatusResponse = (await client.read()) as String;
       const upsStatusMatch = upsStatusResponse.match(/\?UPSStatus=(.*)\n/);
-      const upsStatus = upsStatusMatch ? upsStatusMatch[1] : "0,0,Unknown,False";
+      const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
 
-      return <WattboxDeviceState>{
-        outletStates: outletStatuses.split(",").map(x => Boolean(parseInt(x)).valueOf()),
-        batteryLevel: parseInt(upsStatus.split(",")[0]),
-        powerLost: upsStatus.split(",")[3] === "True"
+      return <WattboxDeviceStatus>{
+        outletStatus: outletStatus.split(",").map(x => Boolean(parseInt(x)) ? WattboxOutletStatus.ON : WattboxOutletStatus.OFF),
+        batteryLevel: upsStatus ? parseInt(upsStatus.split(",")[0]) : undefined,
+        powerLost: upsStatus ? upsStatus.split(",")[3] == "True" : undefined
       };
     }
     finally {
-      try {
-        // !Exit
-        await client.write("!Exit\n");
-        await client.end();
-      }
-      finally {
-        mutexRelease();
-      }
+      await this.logout(client, mutexRelease);
     }
   }
 
-  public async getOutletState(outlet: number) {
+  public subscribeDeviceStatus(serviceTag: string, func: (deviceStatus: WattboxDeviceStatus) => void): PubSubJS.Token {
+    const topic = `homebridge:wattbox:${serviceTag}`;
+    const token = PubSub.subscribe(topic, (_, data) => {
+      if (!data) {
+        return;
+      }
+
+      func(data);
+    });
+
+    if (PubSub.countSubscriptions(topic) === 1) {
+      const poll = async () => {
+        if (PubSub.countSubscriptions(topic) === 0) {
+          return;
+        }
+
+        try {
+          PubSub.publish(topic, await this.getDeviceStatus());
+        }
+        catch (error: unknown) {
+          if (error instanceof Error) {
+            // TODO: Log...
+          }
+        }
+        
+        setTimeout(poll, 30000);
+      }
+
+      setTimeout(poll, 0);
+    }
+
+    return token;
+  }
+
+  public unsubscribeDeviceStatus(token: PubSubJS.Token): void {
+    PubSub.unsubscribe(token);
+  }
+
+  public async setOutletAction(id: number, action: WattboxOutletAction) {
     const client = new PromiseSocket();
     const mutexRelease = await this.mutex.acquire();
 
     try {
       await this.login(client);
 
-      // ?OutletStatus
-      await client.write("?OutletStatus\n");
-      const outletStatusResponse = (await client.read()) as String;
-      const outletStatusMatch = outletStatusResponse.match(/\?OutletStatus=(.*)\n/);
-      const outletStatuses = outletStatusMatch ? outletStatusMatch[1] : "";
-
-      return outletStatuses.split(",").map(x => Boolean(parseInt(x)).valueOf())[outlet - 1];
+      // !OutletSet=Outlet,Action[,Delay]
+      await client.write(`!OutletSet=${id},${WattboxOutletAction[action]}\n`);
+      const outletSetResponse = (await client.read()) as String;
+      if (outletSetResponse.includes("#Error")) {
+        throw "Outlet Set Error" 
+      }
     }
     finally {
-      try {
-        // !Exit
-        await client.write("!Exit\n");
-        await client.end();
-      }
-      finally {
-        mutexRelease();
-      }
-    }
-  }
-
-  public async setOutletState(outlet: number, action: string) {
-    const client = new PromiseSocket();
-    const mutexRelease = await this.mutex.acquire();
-
-    try {
-      await this.login(client);
-
-      // !OutletSet=<OutLet,Action
-      await client.write(`!OutletSet=${outlet},${action}\n`);
-    }
-    finally {
-      try {
-        // !Exit
-        await client.write("!Exit\n");
-        await client.end();
-      }
-      finally {
-        mutexRelease();
-      }
+      await this.logout(client, mutexRelease);
     }
   }
 
@@ -182,8 +171,21 @@ export class WattboxDevice {
     await client.write(`${this.password}\n`);
 
     // Successfully Logged In! or Invalid Login
-    const loginResponse = (await client.read()) as Buffer;
-    if (loginResponse.toString().includes("Invalid")) throw "Invalid Login";
+    const loginResponse = (await client.read()) as String;
+    if (loginResponse.includes("Invalid")) {
+      throw "Invalid Login";
+    }
+  }
+
+  private async logout(client: PromiseSocket<Socket>, mutexRelease: MutexInterface.Releaser) {
+    try {
+      // !Exit
+      await client.write("!Exit\n");
+      await client.end();
+    }
+    finally {
+      mutexRelease();
+    }
   }
 }
 
@@ -191,13 +193,25 @@ export interface WattboxDeviceInfo {
   model: string;
   serviceTag: string;
   firmware: string;
-  outletCount: number;
   outletNames: string[];
   upsConnection: boolean;
 }
 
-export interface WattboxDeviceState {
-  outletStates: boolean[];
-  batteryLevel: number;
-  powerLost: boolean;
+export interface WattboxDeviceStatus {
+  outletStatus: WattboxOutletStatus[];
+  batteryLevel?: number;
+  powerLost?: boolean;
+}
+
+export enum WattboxOutletAction {
+  OFF = 0,
+  ON = 1,
+  TOGGLE = 2,
+  RESET = 3
+}
+
+export enum WattboxOutletStatus {
+  UNKNOWN = -1,
+  OFF = 0,
+  ON = 1
 }
