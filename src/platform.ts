@@ -63,6 +63,10 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         .setCharacteristic(this.api.hap.Characteristic.SerialNumber, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.serviceTag)
         .setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.firmware);
 
+      if ((<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.upsConnection) {
+        accessory.getService(this.api.hap.Service.Battery) || accessory.addService(this.api.hap.Service.Battery);
+      }
+
       for (let i = 0; i < (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames.length; i++) {
         this.log.info(`[${accessory.displayName}] [${(i + 1).toString().padStart(2)}] Creating outlet accessory with default name "${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]}"`);
         new WattBoxPlatformAccessory(this, accessory, deviceApi, i + 1, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]);

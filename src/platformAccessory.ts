@@ -32,6 +32,13 @@ export class WattBoxPlatformAccessory {
           this.outletStatus = deviceStatus.outletStatus[this.outletId - 1];
           outletServiceOnCharacteristic.updateValue(!!deviceStatus.outletStatus[this.outletId - 1]);
         }
+
+        if (this.context.deviceInfo.upsConnection && deviceStatus.batteryLevel !== undefined && deviceStatus.powerLost !== undefined) {
+          this.accessory.getService(this.platform.api.hap.Service.Battery)!
+            .updateCharacteristic(this.platform.api.hap.Characteristic.BatteryLevel, deviceStatus.batteryLevel)
+            .updateCharacteristic(this.platform.api.hap.Characteristic.ChargingState, deviceStatus.powerLost ? this.platform.api.hap.Characteristic.ChargingState.NOT_CHARGING : this.platform.api.hap.Characteristic.ChargingState.CHARGING)
+            .updateCharacteristic(this.platform.api.hap.Characteristic.StatusLowBattery, deviceStatus.powerLost ? this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+        }
       }
     );
   }
