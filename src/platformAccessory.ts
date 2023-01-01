@@ -26,7 +26,7 @@ export class WattBoxPlatformAccessory {
     this.deviceApi.subscribeDeviceStatus(
       this.context.deviceInfo.serviceTag,
       (deviceStatus) => {
-        this.log.info(`${this.logPrefix} status -> ${WattBoxOutletStatus[this.outletStatus]}:${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
+        this.log.debug(`${this.logPrefix} status -> ${WattBoxOutletStatus[this.outletStatus]}:${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
 
         if (this.outletStatus !== deviceStatus.outletStatus[this.outletId - 1]) {
           this.outletStatus = deviceStatus.outletStatus[this.outletId - 1];
@@ -44,7 +44,7 @@ export class WattBoxPlatformAccessory {
   }
 
   private getOn(): CharacteristicValue {
-    this.log.info(`${this.logPrefix} getOn -> ${WattBoxOutletStatus[this.outletStatus]}`)
+    this.log.debug(`${this.logPrefix} getOn -> ${WattBoxOutletStatus[this.outletStatus]}`)
 
     if (this.outletStatus === WattBoxOutletStatus.UNKNOWN) {
       throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.NOT_ALLOWED_IN_CURRENT_STATE);
@@ -56,7 +56,7 @@ export class WattBoxPlatformAccessory {
   private async setOn(value: CharacteristicValue) {
     try {
       const action = value ? WattBoxOutletAction.ON : WattBoxOutletAction.OFF;
-      this.log.info(`${this.logPrefix} setOn(${WattBoxOutletStatus[action]})`)
+      this.log.debug(`${this.logPrefix} setOn(${WattBoxOutletStatus[action]})`)
       await this.deviceApi.setOutletAction(this.outletId, action);
       this.outletStatus = value ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF;
     }
