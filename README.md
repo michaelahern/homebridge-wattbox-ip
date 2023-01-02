@@ -6,19 +6,18 @@
 [![Build](https://github.com/michaelahern/homebridge-wattbox-ip/actions/workflows/build.yml/badge.svg)](https://github.com/michaelahern/homebridge-wattbox-ip/actions/workflows/build.yml)
 [![Donate](https://badgen.net/badge/Donate/PayPal/green)](https://paypal.me/michaeljahern)
 
-
 A [Homebridge](https://homebridge.io) plugin for [WattBox IP Power](https://www.snapav.com/shop/en/snapav/wattbox-ip-power) devices.
 
 ## Requirements
 
- * [Homebridge](https://homebridge.io/)
- * One or more supported [WattBox IP Power](https://www.snapav.com/shop/en/snapav/wattbox-ip-power) devices
+- [Homebridge](https://homebridge.io/)
+- One or more supported [WattBox IP Power](https://www.snapav.com/shop/en/snapav/wattbox-ip-power) devices
 
 ### Supported Devices
 
- * WB-800 Series
- * WB-250 Series
- * WB-150 Series
+- WB-800 Series
+- WB-250 Series
+- WB-150 Series
 
 _Note: This plugin implements the more recent WattBox Integration Protocol used by the above series devices. For WB-700 and WB-300 series devices, take a look at [homebridge-wattbox](https://github.com/derek-miller/homebridge-wattbox)._
 

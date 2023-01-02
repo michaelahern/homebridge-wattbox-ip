@@ -1,49 +1,49 @@
 {
-    "pluginAlias": "WattBox IP",
-    "pluginType": "platform",
-    "singular": true,
-    "schema": {
-        "type": "object",
-        "properties": {
-            "devices": {
-                "type": "array",
-                "title": "WattBox IP Power Devices",
-                "items": {
-                    "type": "object",
-                    "title": "WattBox IP Power Device",
-                    "properties": {
-                        "name": {
-                            "title": "Name",
-                            "type": "string",
-                            "required": true,
-                            "default": "WattBox"
-                        },
-                        "host": {
-                            "title": "Hostname or IP Address",
-                            "type": "string",
-                            "required": true,
-                            "format": "hostname",
-                            "placeholder": "10.0.0.10"
-                        },
-                        "username": {
-                            "title": "Username",
-                            "type": "string",
-                            "required": true
-                        },
-                        "password": {
-                            "title": "Password",
-                            "type": "string",
-                            "required": true
-                        },
-                        "serviceTag": {
-                            "title": "Service Tag",
-                            "type": "string",
-                            "required": true,
-                            "placeholder": "ST1234567890ABCD"
-                        }
-                    }
-                }
+  "pluginAlias": "WattBox IP",
+  "pluginType": "platform",
+  "singular": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "devices": {
+        "type": "array",
+        "title": "WattBox IP Power Devices",
+        "items": {
+          "type": "object",
+          "title": "WattBox IP Power Device",
+          "properties": {
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "required": true,
+              "default": "WattBox"
+            },
+            "host": {
+              "title": "Hostname or IP Address",
+              "type": "string",
+              "required": true,
+              "format": "hostname",
+              "placeholder": "10.0.0.10"
+            },
+            "username": {
+              "title": "Username",
+              "type": "string",
+              "required": true
+            },
+            "password": {
+              "title": "Password",
+              "type": "string",
+              "required": true
+            },
+            "serviceTag": {
+              "title": "Service Tag",
+              "type": "string",
+              "required": true,
+              "placeholder": "ST1234567890ABCD"
             }
+          }
         }
+      }
     }
+  }
 }
