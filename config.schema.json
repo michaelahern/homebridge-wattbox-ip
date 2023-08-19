@@ -40,6 +40,16 @@
               "type": "string",
               "required": true,
               "placeholder": "ST1234567890ABCD"
+            },
+            "outletsReadOnly": {
+              "title": "Outlets Read Only",
+              "type": "boolean",
+              "required": false
+            },
+            "outletsResetOnly": {
+              "title": "Outlets Reset Only",
+              "type": "boolean",
+              "required": false
             }
           }
         }

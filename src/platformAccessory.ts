@@ -2,6 +2,7 @@ import { CharacteristicValue, Logger, PlatformAccessory } from "homebridge";
 
 import { WattBoxPlatform } from "./platform";
 import { WattBoxDeviceApi, WattBoxDeviceInfo, WattBoxOutletAction, WattBoxOutletStatus } from "./wattbox";
+import { WattBoxDeviceConfig } from "./config";
 
 export class WattBoxPlatformAccessory {
   private readonly context: WattBoxPlatformAccessoryContext;
@@ -56,20 +57,26 @@ export class WattBoxPlatformAccessory {
   }
 
   private async setOn(value: CharacteristicValue) {
-    const action = value ? WattBoxOutletAction.ON : WattBoxOutletAction.OFF;
-    this.log.debug(`${this.logPrefix} setOn(${WattBoxOutletStatus[action]})`)
+    if (this.context.deviceConfig.outletsReadOnly) {
+      this.log.debug(`${this.logPrefix} setOn(NOOP)`)
+      throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.READ_ONLY_CHARACTERISTIC);
+    }
+
+    const action = this.context.deviceConfig.outletsResetOnly ? WattBoxOutletAction.RESET : (value ? WattBoxOutletAction.ON : WattBoxOutletAction.OFF);
+    this.log.debug(`${this.logPrefix} setOn(${WattBoxOutletAction[action]})`)
 
     try {
       await this.deviceApi.setOutletAction(this.outletId, action);
       this.outletStatus = value ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF;
     }
     catch (error: unknown) {
-      this.log.error(`${this.logPrefix} setOn(${WattBoxOutletStatus[action]}) -> ${(<Error>error).message}`)
+      this.log.error(`${this.logPrefix} setOn(${WattBoxOutletAction[action]}) -> ${(<Error>error).message}`)
       throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
     }
   }
 }
 
 export interface WattBoxPlatformAccessoryContext {
+  deviceConfig: WattBoxDeviceConfig
   deviceInfo: WattBoxDeviceInfo;
 }

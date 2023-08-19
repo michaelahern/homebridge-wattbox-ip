@@ -41,6 +41,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         }
 
         accessory.context = <WattBoxPlatformAccessoryContext>{
+          deviceConfig: deviceConfig,
           deviceInfo: deviceInfo
         };
       }
