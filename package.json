@@ -1,7 +1,7 @@
 {
   "name": "homebridge-wattbox-ip",
   "displayName": "Homebridge WattBox",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A Homebridge plugin for WattBox IP Power devices.",
   "keywords": [
     "wattbox",
