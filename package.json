@@ -5,6 +5,9 @@
   "description": "A Homebridge plugin for WattBox IP Power devices.",
   "keywords": [
     "wattbox",
+    "WB-800",
+    "WB-250",
+    "WB-150",
     "homebridge",
     "homebridge-plugin"
   ],
@@ -38,19 +41,19 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "dependencies": {
-    "async-mutex": "^0.4.0",
-    "promise-socket": "^7.0.0",
-    "pubsub-js": "^1.9.4"
+    "async-mutex": "~0.4.0",
+    "promise-socket": "~7.0.0",
+    "pubsub-js": "~1.9.4"
   },
   "devDependencies": {
-    "@types/node": "~20",
+    "@types/node": "^20.0",
     "@types/pubsub-js": "~1.8.6",
-    "@typescript-eslint/eslint-plugin": "~6.16",
-    "@typescript-eslint/parser": "~6.16",
-    "eslint": "~8.56",
-    "homebridge": "~1.6.1",
-    "rimraf": "~5.0",
-    "typescript": "~5.3"
+    "@typescript-eslint/eslint-plugin": "^7.1",
+    "@typescript-eslint/parser": "^7.1",
+    "eslint": "^8.57",
+    "homebridge": "~1.7.0",
+    "rimraf": "^5.0",
+    "typescript": "^5.3"
   },
   "engines": {
     "homebridge": ">=1.6.0",
