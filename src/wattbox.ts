@@ -187,8 +187,10 @@ export class WattBoxDeviceApi {
 
         // Please Login to Continue
         // Username:
-        await client.read();
-        await client.read();
+        const pleaseLoginRead = (await client.read()) as string;
+        if (!pleaseLoginRead.includes("Username:")) {
+            await client.read();
+        }
         await client.write(`${this.username}\n`);
 
         // Password:
