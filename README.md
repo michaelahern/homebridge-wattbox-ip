@@ -43,7 +43,8 @@ Example platform config in the Homebridge config.json:
         "name": "My WattBox 2",
         ...
       }
-    ]
+    ],
+    "debug": false
   }
 ]
 ```

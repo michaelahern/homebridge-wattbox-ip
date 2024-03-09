@@ -1,4 +1,5 @@
 import { Mutex, MutexInterface } from "async-mutex";
+import { Logger } from "homebridge";
 import { Socket } from "net";
 import { PromiseSocket } from "promise-socket";
 
@@ -8,18 +9,28 @@ export class WattBoxDeviceApi {
   private readonly host: string;
   private readonly username: string;
   private readonly password: string;
+  private readonly log: Logger;
+  private readonly logDebug: boolean;
+  private readonly logPrefix: string;
   private readonly mutex: Mutex;
 
-  constructor(host: string, username: string, password: string) {
+  constructor(host: string, username: string, password: string, log: Logger, logDebug: boolean, logPrefix: string) {
     this.host = host;
     this.username = username;
     this.password = password;
+    this.log = log;
+    this.logDebug = logDebug;
+    this.logPrefix = logPrefix;
     this.mutex = new Mutex();
   }
 
   public async getDeviceInfo() {
     const client = new PromiseSocket();
     const mutexRelease = await this.mutex.acquire();
+
+    if (this.logDebug) {
+      this.log.debug(`${this.logPrefix} getDeviceInfo()`);
+    }
 
     try {
       await this.login(client);
@@ -71,6 +82,10 @@ export class WattBoxDeviceApi {
     const client = new PromiseSocket();
     const mutexRelease = await this.mutex.acquire();
 
+    if (this.logDebug) {
+      this.log.debug(`${this.logPrefix} getDeviceStatus()`);
+    }
+
     try {
       await this.login(client);
 
@@ -112,15 +127,18 @@ export class WattBoxDeviceApi {
         }
 
         try {
+          if (this.logDebug) {
+            this.log.debug(`${this.logPrefix} subscribeDeviceStatus() -> poll()`);
+          }
           PubSub.publish(topic, await this.getDeviceStatus());
         }
-        catch (error: unknown) {
-          if (error instanceof Error) {
-            // TODO: Log...
+        catch (err) {
+          if (err instanceof Error) {
+            this.log.error(`${this.logPrefix} subscribeDeviceStatus() -> ${err.message}`)
           }
         }
 
-        setTimeout(poll, 20000);
+        setTimeout(poll, 10000);
       }
 
       setTimeout(poll, 0);
@@ -136,6 +154,10 @@ export class WattBoxDeviceApi {
   public async setOutletAction(id: number, action: WattBoxOutletAction) {
     const client = new PromiseSocket();
     const mutexRelease = await this.mutex.acquire();
+
+    if (this.logDebug) {
+      this.log.debug(`${this.logPrefix} setOutletAction()`);
+    }
 
     try {
       await this.login(client);
@@ -153,6 +175,10 @@ export class WattBoxDeviceApi {
   }
 
   private async login(client: PromiseSocket<Socket>) {
+    if (this.logDebug) {
+      this.log.debug(`${this.logPrefix} login()`);
+    }
+
     client.setEncoding("utf8");
     client.setTimeout(10000);
 
@@ -176,6 +202,10 @@ export class WattBoxDeviceApi {
   }
 
   private async logout(client: PromiseSocket<Socket>, mutexRelease: MutexInterface.Releaser) {
+    if (this.logDebug) {
+      this.log.debug(`${this.logPrefix} logout()`);
+    }
+
     try {
       // !Exit
       await client.write("!Exit\n");

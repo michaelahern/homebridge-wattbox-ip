@@ -53,6 +53,11 @@
             }
           }
         }
+      },
+      "debug": {
+        "title": "Debug Logging",
+        "type": "boolean",
+        "required": false
       }
     }
   }
