@@ -28,40 +28,66 @@ export class WattBoxDeviceApi {
         const client = new PromiseSocket();
         const mutexRelease = await this.mutex.acquire();
 
-        if (this.logDebug) {
-            this.log.debug(`${this.logPrefix} getDeviceInfo()`);
-        }
-
         try {
             await this.login(client);
 
             // ?Model
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?Model`);
+            }
             await client.write("?Model\n");
             const modelResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${modelResponse.trim()}`);
+            }
             const modelMatch = modelResponse.match(/\?Model=(.*)\n/);
             const model = modelMatch ? modelMatch[1] : "Unknown";
 
             // ?ServiceTag
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?ServiceTag`);
+            }
             await client.write("?ServiceTag\n");
             const serviceTagResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${serviceTagResponse.trim()}`);
+            }
             const serviceTagMatch = serviceTagResponse.match(/\?ServiceTag=(.*)\n/);
             const serviceTag = serviceTagMatch ? serviceTagMatch[1] : "Unknown";
 
             // ?Firmware
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?Firmware`);
+            }
             await client.write("?Firmware\n");
             const firmwareResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${firmwareResponse.trim()}`);
+            }
             const firmwareMatch = firmwareResponse.match(/\?Firmware=(.*)\n/);
             const firmware = firmwareMatch ? firmwareMatch[1] : "Unknown";
 
             // ?OutletName
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?OutletName`);
+            }
             await client.write("?OutletName\n");
             const outletNameResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${outletNameResponse.trim()}`);
+            }
             const outletNameMatch = outletNameResponse.match(/\?OutletName=(.*)\n/);
             const outletNames = outletNameMatch ? outletNameMatch[1] : "";
 
             // ?UPSConnection
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?UPSConnection`);
+            }
             await client.write("?UPSConnection\n");
             const upsConnectionResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${upsConnectionResponse.trim()}`);
+            }
             const upsConnectionMatch = upsConnectionResponse.toString().match(/\?UPSConnection=(.*)\n/);
             const upsConnection = upsConnectionMatch ? Boolean(parseInt(upsConnectionMatch[1])) : false;
 
@@ -82,22 +108,30 @@ export class WattBoxDeviceApi {
         const client = new PromiseSocket();
         const mutexRelease = await this.mutex.acquire();
 
-        if (this.logDebug) {
-            this.log.debug(`${this.logPrefix} getDeviceStatus()`);
-        }
-
         try {
             await this.login(client);
 
             // ?OutletStatus
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?OutletStatus`);
+            }
             await client.write("?OutletStatus\n");
             const outletStatusResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${outletStatusResponse.trim()}`);
+            }
             const outletStatusMatch = outletStatusResponse.match(/\?OutletStatus=(.*)\n/);
             const outletStatus = outletStatusMatch ? outletStatusMatch[1] : "";
 
             // ?UPSStatus
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?UPSStatus`);
+            }
             await client.write("?UPSStatus\n");
             const upsStatusResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${upsStatusResponse.trim()}`);
+            }
             const upsStatusMatch = upsStatusResponse.match(/\?UPSStatus=(.*)\n/);
             const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
 
@@ -126,16 +160,12 @@ export class WattBoxDeviceApi {
                     return;
                 }
 
-                if (this.logDebug) {
-                    this.log.debug(`${this.logPrefix} subscribeDeviceStatus() -> poll()`);
-                }
-
                 try {
                     PubSub.publish(topic, await this.getDeviceStatus());
                 }
                 catch (err) {
                     if (err instanceof Error) {
-                        this.log.error(`${this.logPrefix} subscribeDeviceStatus() -> ${err.message}`)
+                        this.log.error(`${this.logPrefix} ${err.message}`)
                     }
                 }
 
@@ -156,16 +186,18 @@ export class WattBoxDeviceApi {
         const client = new PromiseSocket();
         const mutexRelease = await this.mutex.acquire();
 
-        if (this.logDebug) {
-            this.log.debug(`${this.logPrefix} setOutletAction()`);
-        }
-
         try {
             await this.login(client);
 
             // !OutletSet=Outlet,Action[,Delay]
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} !OutletSet=${id},${WattBoxOutletAction[action]}`);
+            }
             await client.write(`!OutletSet=${id},${WattBoxOutletAction[action]}\n`);
             const outletSetResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${outletSetResponse.trim()}`);
+            }
             if (outletSetResponse.includes("#Error")) {
                 throw new Error("Outlet Set Action Error!");
             }
@@ -177,7 +209,7 @@ export class WattBoxDeviceApi {
 
     private async login(client: PromiseSocket<Socket>) {
         if (this.logDebug) {
-            this.log.debug(`${this.logPrefix} login()`);
+            this.log.debug(`${this.logPrefix} Connecting to ${this.host}:23`);
         }
 
         client.setEncoding("utf8");
@@ -199,6 +231,9 @@ export class WattBoxDeviceApi {
 
         // Successfully Logged In! or Invalid Login
         const loginResponse = (await client.read()) as string;
+        if (this.logDebug) {
+            this.log.debug(`${this.logPrefix} ${loginResponse.trim()}`);
+        }
         if (loginResponse.includes("Invalid")) {
             throw new Error("Invalid Login!");
         }
@@ -206,7 +241,7 @@ export class WattBoxDeviceApi {
 
     private async logout(client: PromiseSocket<Socket>, mutexRelease: MutexInterface.Releaser) {
         if (this.logDebug) {
-            this.log.debug(`${this.logPrefix} logout()`);
+            this.log.debug(`${this.logPrefix} !Exit`);
         }
 
         try {
