@@ -1,7 +1,7 @@
 {
   "name": "homebridge-wattbox-ip",
   "displayName": "Homebridge WattBox",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A Homebridge plugin for WattBox IP Power devices.",
   "keywords": [
     "wattbox",
@@ -47,13 +47,13 @@
   },
   "devDependencies": {
     "@types/node": "^20.0",
-    "@types/pubsub-js": "~1.8.6",
+    "@types/pubsub-js": "^1.8",
     "@typescript-eslint/eslint-plugin": "^7.1",
     "@typescript-eslint/parser": "^7.1",
     "eslint": "^8.57",
-    "homebridge": "~1.7.0",
+    "homebridge": "~1.7",
     "rimraf": "^5.0",
-    "typescript": "^5.3"
+    "typescript": "~5.3"
   },
   "engines": {
     "homebridge": ">=1.6.0",
