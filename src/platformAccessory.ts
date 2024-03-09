@@ -21,15 +21,20 @@ export class WattBoxPlatformAccessory {
             .setCharacteristic(this.platform.api.hap.Characteristic.Name, `${this.outletId} ${this.outletName}`);
 
         const outletServiceOnCharacteristic = outletService.getCharacteristic(this.platform.api.hap.Characteristic.On)
-            .onGet(this.getOn.bind(this))
-            .onSet(this.setOn.bind(this));
+            .onGet(this.getOutletStatus.bind(this))
+            .onSet(this.setOutletStatus.bind(this));
 
         const batteryService = this.accessory.getService(this.platform.api.hap.Service.Battery);
 
         this.deviceApi.subscribeDeviceStatus(
             this.context.deviceInfo.serviceTag,
             (deviceStatus) => {
-                this.log.debug(`${this.logPrefix} status -> ${WattBoxOutletStatus[this.outletStatus]}:${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
+                if (WattBoxOutletStatus[this.outletStatus] != WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]) {
+                    this.log.info(`${this.logPrefix} outletStatus -> ${WattBoxOutletStatus[this.outletStatus]}:${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
+                }
+                else if (this.platform.config.debug) {
+                    this.log.debug(`${this.logPrefix} outletStatus -> ${WattBoxOutletStatus[this.outletStatus]}:${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
+                }
 
                 if (this.outletStatus !== deviceStatus.outletStatus[this.outletId - 1]) {
                     this.outletStatus = deviceStatus.outletStatus[this.outletId - 1];
@@ -46,8 +51,10 @@ export class WattBoxPlatformAccessory {
         );
     }
 
-    private getOn(): CharacteristicValue {
-        this.log.debug(`${this.logPrefix} getOn -> ${WattBoxOutletStatus[this.outletStatus]}`)
+    private getOutletStatus(): CharacteristicValue {
+        if (this.platform.config.debug) {
+            this.log.debug(`${this.logPrefix} getOutletStatus -> ${WattBoxOutletStatus[this.outletStatus]}`)
+        }
 
         if (this.outletStatus === WattBoxOutletStatus.UNKNOWN) {
             throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.NOT_ALLOWED_IN_CURRENT_STATE);
@@ -56,21 +63,27 @@ export class WattBoxPlatformAccessory {
         return this.outletStatus === WattBoxOutletStatus.ON;
     }
 
-    private async setOn(value: CharacteristicValue) {
+    private async setOutletStatus(value: CharacteristicValue) {
         if (this.context.deviceConfig.outletsReadOnly) {
-            this.log.debug(`${this.logPrefix} setOn(NOOP)`)
+            if (this.platform.config.debug) {
+                this.log.debug(`${this.logPrefix} setOutletStatus(NOOP)`)
+            }
+
             throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.READ_ONLY_CHARACTERISTIC);
         }
 
         const action = this.context.deviceConfig.outletsResetOnly ? WattBoxOutletAction.RESET : (value ? WattBoxOutletAction.ON : WattBoxOutletAction.OFF);
-        this.log.debug(`${this.logPrefix} setOn(${WattBoxOutletAction[action]})`)
+        this.log.info(`${this.logPrefix} setOutletStatus(${WattBoxOutletAction[action]})`)
 
         try {
             await this.deviceApi.setOutletAction(this.outletId, action);
             this.outletStatus = value ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF;
         }
-        catch (error: unknown) {
-            this.log.error(`${this.logPrefix} setOn(${WattBoxOutletAction[action]}) -> ${(<Error>error).message}`)
+        catch (err) {
+            if (err instanceof Error) {
+                this.log.error(`${this.logPrefix} setOutletStatus(${WattBoxOutletAction[action]}) -> ${err.message}`)
+            }
+
             throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
         }
     }

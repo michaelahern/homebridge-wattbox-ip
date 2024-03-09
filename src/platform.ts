@@ -15,7 +15,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         this.config = <WattBoxHomebridgePlatformConfig>this.platformConfig;
 
         this.api.on('didFinishLaunching', async () => {
-            this.discoverDevices();
+            await this.discoverDevices();
         });
     }
 
