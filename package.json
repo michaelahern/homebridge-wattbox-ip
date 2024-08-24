@@ -1,7 +1,8 @@
 {
   "name": "homebridge-wattbox-ip",
   "displayName": "Homebridge WattBox",
-  "version": "0.3.0",
+  "type": "module",
+  "version": "0.4.0",
   "description": "A Homebridge plugin for WattBox IP Power devices.",
   "keywords": [
     "wattbox",
@@ -41,22 +42,21 @@
     "prepublishOnly": "npm run lint && npm run build"
   },
   "dependencies": {
-    "async-mutex": "~0.4.0",
-    "promise-socket": "~7.0.0",
-    "pubsub-js": "~1.9.4"
+    "async-mutex": "~0.5",
+    "promise-socket": "~8.0",
+    "pubsub-js": "~1.9"
   },
   "devDependencies": {
-    "@types/node": "^20.0",
-    "@types/pubsub-js": "^1.8",
-    "@typescript-eslint/eslint-plugin": "^7.1",
-    "@typescript-eslint/parser": "^7.1",
-    "eslint": "^8.57",
-    "homebridge": "~1.7",
-    "rimraf": "^5.0",
-    "typescript": "~5.3"
+    "@types/node": "^20",
+    "@types/pubsub-js": "~1.8",
+    "eslint": "^9",
+    "homebridge": "~1.8",
+    "rimraf": "^6",
+    "typescript": "~5.5",
+    "typescript-eslint": "^8"
   },
   "engines": {
-    "homebridge": ">=1.6.0",
+    "homebridge": ">=1.7.0",
     "node": ">=18"
   }
 }

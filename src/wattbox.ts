@@ -3,7 +3,7 @@ import { Logger } from "homebridge";
 import { Socket } from "net";
 import { PromiseSocket } from "promise-socket";
 
-import PubSub from "pubsub-js";
+import * as PubSub from "pubsub-js";
 
 export class WattBoxDeviceApi {
     private readonly host: string;

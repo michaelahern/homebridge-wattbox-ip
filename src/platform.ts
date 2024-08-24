@@ -1,9 +1,9 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig } from "homebridge";
 
-import { WattBoxConfig } from "./config";
-import { WattBoxPlatformAccessory, WattBoxPlatformAccessoryContext } from "./platformAccessory";
-import { PLATFORM_NAME, PLUGIN_NAME } from "./settings";
-import { WattBoxDeviceApi } from "./wattbox";
+import { WattBoxConfig } from "./config.js";
+import { WattBoxPlatformAccessory, WattBoxPlatformAccessoryContext } from "./platformAccessory.js";
+import { PLATFORM_NAME, PLUGIN_NAME } from "./settings.js";
+import { WattBoxDeviceApi } from "./wattbox.js";
 
 type WattBoxHomebridgePlatformConfig = PlatformConfig & WattBoxConfig;
 
@@ -65,7 +65,9 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
                 .setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.firmware);
 
             if ((<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.upsConnection) {
-                accessory.getService(this.api.hap.Service.Battery) || accessory.addService(this.api.hap.Service.Battery, "UPS Battery Backup");
+                if (!accessory.getService(this.api.hap.Service.Battery)) {
+                    accessory.addService(this.api.hap.Service.Battery, "UPS Battery Backup");
+                }
             }
 
             for (let i = 0; i < (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames.length; i++) {

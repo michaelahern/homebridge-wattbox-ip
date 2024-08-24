@@ -1,8 +1,8 @@
 import { CharacteristicValue, Logger, PlatformAccessory } from "homebridge";
 
-import { WattBoxDeviceConfig } from "./config";
-import { WattBoxPlatform } from "./platform";
-import { WattBoxDeviceApi, WattBoxDeviceInfo, WattBoxOutletAction, WattBoxOutletStatus } from "./wattbox";
+import { WattBoxDeviceConfig } from "./config.js";
+import { WattBoxPlatform } from "./platform.js";
+import { WattBoxDeviceApi, WattBoxDeviceInfo, WattBoxOutletAction, WattBoxOutletStatus } from "./wattbox.js";
 
 export class WattBoxPlatformAccessory {
     private readonly context: WattBoxPlatformAccessoryContext;
