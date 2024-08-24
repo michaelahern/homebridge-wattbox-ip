@@ -42,14 +42,23 @@
               "placeholder": "ST1234567890ABCD"
             },
             "outletsReadOnly": {
-              "title": "Outlets Read Only",
+              "title": "All Outlets Read Only",
               "type": "boolean",
               "required": false
             },
             "outletsResetOnly": {
-              "title": "Outlets Reset Only",
+              "title": "All Outlets Reset Only",
               "type": "boolean",
               "required": false
+            },
+            "excludedOutlets": {
+              "title": "Excluded Outlets",
+              "type": "array",
+              "required": false,
+              "items": {
+                "title": "Excluded Outlet Name",
+                "type": "string"
+              }
             }
           }
         }

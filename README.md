@@ -37,7 +37,10 @@ Example platform config in the Homebridge config.json:
         "password": "wattbox",
         "serviceTag": "ST1234567890ABCD",
         "outletsReadOnly": false,
-        "outletsResetOnly": false
+        "outletsResetOnly": false,
+        "excludedOutlets": [
+          "Unused Outlet"
+        ]
       },
       {
         "name": "My WattBox 2",

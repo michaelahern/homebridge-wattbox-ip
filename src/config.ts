@@ -10,5 +10,6 @@ export interface WattBoxDeviceConfig {
     password: string,
     serviceTag: string,
     outletsReadOnly?: boolean,
-    outletsResetOnly?: boolean
+    outletsResetOnly?: boolean,
+    excludedOutlets?: string[]
 }

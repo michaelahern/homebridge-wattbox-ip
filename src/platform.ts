@@ -25,7 +25,8 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
     }
 
     private async discoverDevices() {
-        const uuids: Set<string> = new Set();
+        const discoveredAccessoryUUIDs: Set<string> = new Set();
+
         for (const deviceConfig of this.config.devices) {
             const uuid = this.api.hap.uuid.generate(deviceConfig.serviceTag);
             const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
@@ -71,21 +72,30 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             }
 
             for (let i = 0; i < (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames.length; i++) {
-                this.log.info(`[${accessory.displayName}] [${(i + 1).toString().padStart(2)}] Creating outlet with name "${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]}"`);
+                if (deviceConfig.excludedOutlets && deviceConfig.excludedOutlets.includes((<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i])) {
+                    this.log.info(`[${accessory.displayName}] [${(i + 1).toString().padStart(2)}] Excluding outlet with name "${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]}"`);
+                    const outletService = accessory.getServiceById(this.api.hap.Service.Outlet, `${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.serviceTag}:${i + 1}`);
+                    if (outletService) {
+                        accessory.removeService(outletService);
+                    }
+                    continue;
+                }
+
+                this.log.info(`[${accessory.displayName}] [${(i + 1).toString().padStart(2)}] Including outlet with name "${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]}"`);
                 new WattBoxPlatformAccessory(this, accessory, deviceApi, i + 1, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]);
             }
 
             if (existingAccessory) {
                 this.api.updatePlatformAccessories([accessory]);
-                uuids.add(uuid);
             }
             else {
                 this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-                uuids.add(uuid);
             }
+
+            discoveredAccessoryUUIDs.add(uuid);
         }
 
-        const orphanedAccessories = this.accessories.filter(accessory => !uuids.has(accessory.UUID));
+        const orphanedAccessories = this.accessories.filter(accessory => !discoveredAccessoryUUIDs.has(accessory.UUID));
         for (const orphanedAccessory of orphanedAccessories) {
             this.log.info(`[${orphanedAccessory.displayName}] Removing orphaned accessory from cache...`);
             this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [orphanedAccessory]);
