@@ -1,6 +1,7 @@
 export interface WattBoxConfig {
     devices: WattBoxDeviceConfig[],
-    debug?: boolean
+    debug?: boolean,
+    pollInterval?: number
 }
 
 export interface WattBoxDeviceConfig {

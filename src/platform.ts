@@ -32,7 +32,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
             const accessory = existingAccessory ?? new this.api.platformAccessory(deviceConfig.name, uuid);
 
-            const deviceApi = new WattBoxDeviceApi(deviceConfig.host, deviceConfig.username, deviceConfig.password, this.log, this.config.debug ?? false, `[${accessory.displayName}]`);
+            const deviceApi = new WattBoxDeviceApi(deviceConfig.host, deviceConfig.username, deviceConfig.password, this.config.pollInterval ?? 10, this.log, this.config.debug ?? false, `[${accessory.displayName}]`);
 
             try {
                 const deviceInfo = await deviceApi.getDeviceInfo();

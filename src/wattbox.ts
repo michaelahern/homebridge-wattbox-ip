@@ -9,15 +9,17 @@ export class WattBoxDeviceApi {
     private readonly host: string;
     private readonly username: string;
     private readonly password: string;
+    private readonly pollInterval: number;
     private readonly log: Logger;
     private readonly logDebug: boolean;
     private readonly logPrefix: string;
     private readonly mutex: Mutex;
 
-    constructor(host: string, username: string, password: string, log: Logger, logDebug: boolean, logPrefix: string) {
+    constructor(host: string, username: string, password: string, pollInterval: number, log: Logger, logDebug: boolean, logPrefix: string) {
         this.host = host;
         this.username = username;
         this.password = password;
+        this.pollInterval = pollInterval;
         this.log = log;
         this.logDebug = logDebug;
         this.logPrefix = logPrefix;
@@ -169,7 +171,7 @@ export class WattBoxDeviceApi {
                     }
                 }
 
-                setTimeout(poll, 10000);
+                setTimeout(poll, this.pollInterval * 1000);
             }
 
             setTimeout(poll, 0);

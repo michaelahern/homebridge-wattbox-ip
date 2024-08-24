@@ -7,16 +7,16 @@
     "properties": {
       "devices": {
         "type": "array",
-        "title": "WattBox IP Power Devices",
+        "title": "WattBox Devices",
         "items": {
           "type": "object",
-          "title": "WattBox IP Power Device",
+          "title": "WattBox Device",
           "properties": {
             "name": {
               "title": "Name",
               "type": "string",
               "required": true,
-              "default": "WattBox"
+              "default": "My WattBox"
             },
             "host": {
               "title": "Hostname or IP Address",
@@ -67,7 +67,57 @@
         "title": "Debug Logging",
         "type": "boolean",
         "required": false
+      },
+      "pollInterval": {
+        "title": "Polling Interval (seconds)",
+        "type": "integer",
+        "required": false,
+        "default": 10
       }
     }
-  }
+  },
+  "layout": [
+    {
+      "type": "section",
+      "items": [
+        {
+          "key": "devices",
+          "type": "array",
+          "orderable": false,
+          "buttonText": "Add WattBox Device",
+          "items": [
+            "devices[].name",
+            "devices[].host",
+            "devices[].username",
+            "devices[].password",
+            "devices[].serviceTag",
+            "devices[].outletsReadOnly",
+            "devices[].outletsResetOnly",
+            {
+              "key": "devices[].excludedOutlets",
+              "type": "array",
+              "name": "Excluded Outlets",
+              "orderable": false,
+              "buttonText": "Add Excluded Outlet",
+              "items": ["devices[].excludedOutlets[]"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "title": "Advanced Settings",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        {
+          "items": [
+            "debug",
+            "pollInterval"
+          ]
+        }
+      ]
+    }
+  ]
 }
