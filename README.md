@@ -47,7 +47,8 @@ Example platform config in the Homebridge config.json:
         ...
       }
     ],
-    "debug": false
+    "debug": false,
+    "pollInterval": 10
   }
 ]
 ```
