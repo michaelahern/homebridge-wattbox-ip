@@ -41,22 +41,30 @@
               "required": true,
               "placeholder": "ST1234567890ABCD"
             },
-            "outletsReadOnly": {
-              "title": "All Outlets Read Only",
-              "type": "boolean",
-              "required": false
-            },
-            "outletsResetOnly": {
-              "title": "All Outlets Reset Only",
-              "type": "boolean",
-              "required": false
-            },
             "excludedOutlets": {
               "title": "Excluded Outlets",
               "type": "array",
               "required": false,
               "items": {
                 "title": "Excluded Outlet Name",
+                "type": "string"
+              }
+            },
+            "readOnlyOutlets": {
+              "title": "Read Only Outlets",
+              "type": "array",
+              "required": false,
+              "items": {
+                "title": "Read Only Outlet Name",
+                "type": "string"
+              }
+            },
+            "resetOnlyOutlets": {
+              "title": "Reset Only Outlets",
+              "type": "array",
+              "required": false,
+              "items": {
+                "title": "Reset Only Outlet Name",
                 "type": "string"
               }
             }
@@ -91,8 +99,6 @@
             "devices[].username",
             "devices[].password",
             "devices[].serviceTag",
-            "devices[].outletsReadOnly",
-            "devices[].outletsResetOnly",
             {
               "key": "devices[].excludedOutlets",
               "type": "array",
@@ -100,6 +106,22 @@
               "orderable": false,
               "buttonText": "Add Excluded Outlet",
               "items": ["devices[].excludedOutlets[]"]
+            },
+            {
+              "key": "devices[].readOnlyOutlets",
+              "type": "array",
+              "name": "Read Only Outlets",
+              "orderable": false,
+              "buttonText": "Add Read Only Outlet",
+              "items": ["devices[].readOnlyOutlets[]"]
+            },
+            {
+              "key": "devices[].resetOnlyOutlets",
+              "type": "array",
+              "name": "Reset Only Outlets",
+              "orderable": false,
+              "buttonText": "Add Reset Only Outlet",
+              "items": ["devices[].resetOnlyOutlets[]"]
             }
           ]
         }

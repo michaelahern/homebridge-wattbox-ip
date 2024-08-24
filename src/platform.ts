@@ -72,17 +72,24 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             }
 
             for (let i = 0; i < (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames.length; i++) {
-                if (deviceConfig.excludedOutlets && deviceConfig.excludedOutlets.includes((<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i])) {
-                    this.log.info(`[${accessory.displayName}] [${(i + 1).toString().padStart(2)}] Excluding outlet with name "${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]}"`);
-                    const outletService = accessory.getServiceById(this.api.hap.Service.Outlet, `${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.serviceTag}:${i + 1}`);
+                const outletId = i + 1;
+                const outletName = (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i];
+                const outletServiceId = `${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.serviceTag}:${outletId}`;
+                const outletIsExcluded = (deviceConfig.excludedOutlets && deviceConfig.excludedOutlets.includes(outletName)) ?? false;
+                const outletIsReadOnly = (deviceConfig.readOnlyOutlets && deviceConfig.readOnlyOutlets.includes(outletName)) ?? false;
+                const outletIsResetOnly = (deviceConfig.resetOnlyOutlets && deviceConfig.resetOnlyOutlets.includes(outletName)) ?? false;
+
+                if (outletIsExcluded) {
+                    this.log.info(`[${accessory.displayName}] [${outletId.toString().padStart(2)}] Excluded=${Number(outletIsExcluded)} ReadOnly=${Number(outletIsReadOnly)} ResetOnly=${Number(outletIsResetOnly)} Name=${outletName}`);
+                    const outletService = accessory.getServiceById(this.api.hap.Service.Outlet, outletServiceId);
                     if (outletService) {
                         accessory.removeService(outletService);
                     }
                     continue;
                 }
 
-                this.log.info(`[${accessory.displayName}] [${(i + 1).toString().padStart(2)}] Including outlet with name "${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]}"`);
-                new WattBoxPlatformAccessory(this, accessory, deviceApi, i + 1, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i]);
+                this.log.info(`[${accessory.displayName}] [${outletId.toString().padStart(2)}] Excluded=${Number(outletIsExcluded)} ReadOnly=${Number(outletIsReadOnly)} ResetOnly=${Number(outletIsResetOnly)} Name=${outletName}`);
+                new WattBoxPlatformAccessory(this, accessory, deviceApi, outletId, outletServiceId, outletName, outletIsReadOnly, outletIsResetOnly);
             }
 
             if (existingAccessory) {

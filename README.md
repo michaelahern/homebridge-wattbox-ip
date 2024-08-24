@@ -36,9 +36,9 @@ Example platform config in the Homebridge config.json:
         "username": "wattbox",
         "password": "wattbox",
         "serviceTag": "ST1234567890ABCD",
-        "outletsReadOnly": false,
-        "outletsResetOnly": false,
-        "excludedOutlets": ["Open Outlet", "Unused Outlet"]
+        "excludedOutlets": ["Unused"],
+        "readOnlyOutlets": ["Life Support"],
+        "resetOnlyOutlets": ["Modem", "Router"]
       }
     ],
     "debug": false,
@@ -49,16 +49,16 @@ Example platform config in the Homebridge config.json:
 
 ### Configuration Details
 
-Field           	           | Description
+Field           	             | Description
 -------------------------------|------------
 **platform**   	               | (required) Must be "WattBox IP"
 **devices[].name**	           | (required) Name for the device in HomeKit
-**devices[].host**			   | (required) WattBox Device Hostname or IP Address
+**devices[].host**			       | (required) WattBox Device Hostname or IP Address
 **devices[].username**	       | (required) WattBox Device Username
 **devices[].password**	       | (required) WattBox Device Password
-**devices[].serviceTag**	   | (required) WattBox Device Service Tag
-**devices[].outletsReadOnly**  | (optional) Disable outlet state changes in HomeKit, default is false
-**devices[].outletsResetOnly** | (optional) Force any outlet state changes to be reset only, default is false
-**devices[].excludedOutlets**  | (optional) Array of outlet names to exclude from HomeKit, none excluded by default
+**devices[].serviceTag**	     | (required) WattBox Device Service Tag
+**devices[].excludedOutlets**  | (optional) Array of outlet names to exclude from HomeKit
+**devices[].readOnlyOutlets**  | (optional) Array of outlet names to disable changing outlet state, useful for outlets you want to view the state of but not control via HomeKit
+**devices[].resetOnlyOutlets** | (optional) Array of outlet names to send reset (off+on) outlet state change actions instead of power off, useful for outlets that should never be powered off like critical network equipment
 **debug**                      | (optional) Enable debug logging, disabled by default
-**pollInterval**	           | (optional) Interval in seconds for polling latest outlet status, default is 10s
+**pollInterval**	             | (optional) Interval in seconds for polling the latest outlet status, default is 10s
