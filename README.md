@@ -38,13 +38,7 @@ Example platform config in the Homebridge config.json:
         "serviceTag": "ST1234567890ABCD",
         "outletsReadOnly": false,
         "outletsResetOnly": false,
-        "excludedOutlets": [
-          "Unused Outlet"
-        ]
-      },
-      {
-        "name": "My WattBox 2",
-        ...
+        "excludedOutlets": ["Open Outlet", "Unused Outlet"]
       }
     ],
     "debug": false,
@@ -52,3 +46,19 @@ Example platform config in the Homebridge config.json:
   }
 ]
 ```
+
+### Configuration Details
+
+Field           	           | Description
+-------------------------------|------------
+**platform**   	               | (required) Must be "WattBox IP"
+**devices[].name**	           | (required) Name for the device in HomeKit
+**devices[].host**			   | (required) WattBox Device Hostname or IP Address
+**devices[].username**	       | (required) WattBox Device Username
+**devices[].password**	       | (required) WattBox Device Password
+**devices[].serviceTag**	   | (required) WattBox Device Service Tag
+**devices[].outletsReadOnly**  | (optional) Disable outlet state changes in HomeKit, default is false
+**devices[].outletsResetOnly** | (optional) Force any outlet state changes to be reset only, default is false
+**devices[].excludedOutlets**  | (optional) Array of outlet names to exclude from HomeKit, none excluded by default
+**debug**                      | (optional) Enable debug logging, disabled by default
+**pollInterval**	           | (optional) Interval in seconds for polling latest outlet status, default is 10s
