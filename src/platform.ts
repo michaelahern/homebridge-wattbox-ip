@@ -79,8 +79,9 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
                 const outletIsReadOnly = (deviceConfig.readOnlyOutlets?.includes(outletName)) ?? false;
                 const outletIsResetOnly = (deviceConfig.resetOnlyOutlets?.includes(outletName)) ?? false;
 
+                this.log.info(`[${accessory.displayName}] [${outletId.toString().padStart(2)}] Excluded=${+outletIsExcluded} ReadOnly=${+outletIsReadOnly} ResetOnly=${+outletIsResetOnly} Name=${outletName}`);
+
                 if (outletIsExcluded) {
-                    this.log.info(`[${accessory.displayName}] [${outletId.toString().padStart(2)}] Excluded=${+outletIsExcluded} ReadOnly=${+outletIsReadOnly} ResetOnly=${+outletIsResetOnly} Name=${outletName}`);
                     const outletService = accessory.getServiceById(this.api.hap.Service.Outlet, outletServiceId);
                     if (outletService) {
                         accessory.removeService(outletService);
@@ -88,7 +89,6 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
                     continue;
                 }
 
-                this.log.info(`[${accessory.displayName}] [${outletId.toString().padStart(2)}] Excluded=${+outletIsExcluded} ReadOnly=${+outletIsReadOnly} ResetOnly=${+outletIsResetOnly} Name=${outletName}`);
                 new WattBoxPlatformAccessory(this, accessory, deviceApi, outletId, outletServiceId, outletName, outletIsReadOnly, outletIsResetOnly);
             }
 
