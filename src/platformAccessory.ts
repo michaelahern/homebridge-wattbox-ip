@@ -12,7 +12,7 @@ export class WattBoxPlatformAccessory {
     private outletStatus = WattBoxOutletStatus.UNKNOWN;
 
     constructor(private readonly platform: WattBoxPlatform, private readonly accessory: PlatformAccessory, private readonly deviceApi: WattBoxDeviceApi, private readonly outletId: number, private readonly outletServiceId: string, private readonly outletName: string, private readonly outletIsReadOnly: boolean, private readonly outletIsResetOnly: boolean) {
-        this.context = <WattBoxPlatformAccessoryContext>this.accessory.context;
+        this.context = this.accessory.context as WattBoxPlatformAccessoryContext;
         this.log = this.platform.log;
         this.logPrefix = `[${this.accessory.displayName}] [${this.outletId.toString().padStart(2)}]`;
 

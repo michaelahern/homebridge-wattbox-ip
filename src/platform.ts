@@ -12,7 +12,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
     public readonly config: WattBoxHomebridgePlatformConfig;
 
     constructor(public readonly log: Logger, public readonly platformConfig: PlatformConfig, public readonly api: API) {
-        this.config = <WattBoxHomebridgePlatformConfig>this.platformConfig;
+        this.config = this.platformConfig as WattBoxHomebridgePlatformConfig;
 
         this.api.on('didFinishLaunching', async () => {
             await this.discoverDevices();
@@ -25,7 +25,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
     }
 
     private async discoverDevices() {
-        const discoveredAccessoryUUIDs: Set<string> = new Set();
+        const discoveredAccessoryUUIDs = new Set<string>();
 
         for (const deviceConfig of this.config.devices) {
             const uuid = this.api.hap.uuid.generate(deviceConfig.serviceTag);
@@ -41,13 +41,13 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
                     this.log.warn(`[${accessory.displayName}] Service tag mismatch detected!`);
                 }
 
-                accessory.context = <WattBoxPlatformAccessoryContext>{
+                accessory.context = {
                     deviceConfig: deviceConfig,
                     deviceInfo: deviceInfo
-                };
+                } as WattBoxPlatformAccessoryContext;
             }
             catch (error: unknown) {
-                this.log.error(`[${accessory.displayName}] ${(<Error>error).message}`);
+                this.log.error(`[${accessory.displayName}] ${(error as Error).message}`);
 
                 if (existingAccessory) {
                     this.log.error(`[${accessory.displayName}] Using cache to initialize accessory, check configuration!`);
@@ -61,20 +61,20 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             (accessory.getService(this.api.hap.Service.AccessoryInformation) || accessory.addService(this.api.hap.Service.AccessoryInformation))
                 .setCharacteristic(this.api.hap.Characteristic.Name, deviceConfig.name)
                 .setCharacteristic(this.api.hap.Characteristic.Manufacturer, 'WattBox')
-                .setCharacteristic(this.api.hap.Characteristic.Model, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.model)
-                .setCharacteristic(this.api.hap.Characteristic.SerialNumber, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.serviceTag)
-                .setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.firmware);
+                .setCharacteristic(this.api.hap.Characteristic.Model, (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.model)
+                .setCharacteristic(this.api.hap.Characteristic.SerialNumber, (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.serviceTag)
+                .setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.firmware);
 
-            if ((<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.upsConnection) {
+            if ((accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.upsConnection) {
                 if (!accessory.getService(this.api.hap.Service.Battery)) {
                     accessory.addService(this.api.hap.Service.Battery, "UPS Battery Backup");
                 }
             }
 
-            for (let i = 0; i < (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames.length; i++) {
+            for (let i = 0; i < (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.outletNames.length; i++) {
                 const outletId = i + 1;
-                const outletName = (<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.outletNames[i];
-                const outletServiceId = `${(<WattBoxPlatformAccessoryContext>accessory.context).deviceInfo.serviceTag}:${outletId}`;
+                const outletName = (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.outletNames[i];
+                const outletServiceId = `${(accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.serviceTag}:${outletId}`;
                 const outletIsExcluded = (deviceConfig.excludedOutlets && deviceConfig.excludedOutlets.includes(outletName)) ?? false;
                 const outletIsReadOnly = (deviceConfig.readOnlyOutlets && deviceConfig.readOnlyOutlets.includes(outletName)) ?? false;
                 const outletIsResetOnly = (deviceConfig.resetOnlyOutlets && deviceConfig.resetOnlyOutlets.includes(outletName)) ?? false;

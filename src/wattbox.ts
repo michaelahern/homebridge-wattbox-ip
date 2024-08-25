@@ -93,13 +93,13 @@ export class WattBoxDeviceApi {
             const upsConnectionMatch = upsConnectionResponse.toString().match(/\?UPSConnection=(.*)\n/);
             const upsConnection = upsConnectionMatch ? Boolean(parseInt(upsConnectionMatch[1])) : false;
 
-            return <WattBoxDeviceInfo>{
+            return {
                 model: model,
                 serviceTag: serviceTag,
                 firmware: firmware,
                 outletNames: outletNames.split(",").map(x => x.substring(1, x.length - 1)),
                 upsConnection: upsConnection
-            };
+            } as WattBoxDeviceInfo;
         }
         finally {
             await this.logout(client, mutexRelease);
@@ -137,11 +137,11 @@ export class WattBoxDeviceApi {
             const upsStatusMatch = upsStatusResponse.match(/\?UPSStatus=(.*)\n/);
             const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
 
-            return <WattBoxDeviceStatus>{
+            return {
                 outletStatus: outletStatus.split(",").map(x => parseInt(x) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
                 batteryLevel: upsStatus ? parseInt(upsStatus.split(",")[0]) : undefined,
                 powerLost: upsStatus ? upsStatus.split(",")[3] == "True" : undefined
-            };
+            } as WattBoxDeviceStatus;
         }
         finally {
             await this.logout(client, mutexRelease);
