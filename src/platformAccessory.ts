@@ -16,7 +16,7 @@ export class WattBoxPlatformAccessory {
         this.log = this.platform.log;
         this.logPrefix = `[${this.accessory.displayName}] [${this.outletId.toString().padStart(2)}]`;
 
-        const outletService = (this.accessory.getServiceById(this.platform.api.hap.Service.Outlet, this.outletServiceId) || this.accessory.addService(this.platform.api.hap.Service.Outlet, `${this.outletId}: ${this.outletName}`, this.outletServiceId))
+        const outletService = (this.accessory.getServiceById(this.platform.api.hap.Service.Outlet, this.outletServiceId) || this.accessory.addService(this.platform.api.hap.Service.Outlet, `${this.outletId} ${this.outletName}`, this.outletServiceId))
             .setCharacteristic(this.platform.api.hap.Characteristic.Name, `${this.outletId} ${this.outletName}`);
 
         const outletServiceOnCharacteristic = outletService.getCharacteristic(this.platform.api.hap.Characteristic.On)
