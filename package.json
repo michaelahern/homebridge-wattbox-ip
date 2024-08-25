@@ -47,6 +47,7 @@
     "pubsub-js": "~1.9"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^2",
     "@types/node": "^20",
     "@types/pubsub-js": "~1.8",
     "eslint": "^9",

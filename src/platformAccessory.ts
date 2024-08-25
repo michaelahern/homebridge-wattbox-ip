@@ -1,8 +1,8 @@
-import { CharacteristicValue, Logger, PlatformAccessory } from "homebridge";
+import { CharacteristicValue, Logger, PlatformAccessory } from 'homebridge';
 
-import { WattBoxDeviceConfig } from "./config.js";
-import { WattBoxPlatform } from "./platform.js";
-import { WattBoxDeviceApi, WattBoxDeviceInfo, WattBoxOutletAction, WattBoxOutletStatus } from "./wattbox.js";
+import { WattBoxDeviceConfig } from './config.js';
+import { WattBoxPlatform } from './platform.js';
+import { WattBoxDeviceApi, WattBoxDeviceInfo, WattBoxOutletAction, WattBoxOutletStatus } from './wattbox.js';
 
 export class WattBoxPlatformAccessory {
     private readonly context: WattBoxPlatformAccessoryContext;
@@ -71,7 +71,7 @@ export class WattBoxPlatformAccessory {
         }
 
         const action = this.outletIsResetOnly ? WattBoxOutletAction.RESET : (value ? WattBoxOutletAction.ON : WattBoxOutletAction.OFF);
-        this.log.info(`${this.logPrefix} setOutletStatus ${WattBoxOutletAction[action]}`)
+        this.log.info(`${this.logPrefix} setOutletStatus ${WattBoxOutletAction[action]}`);
 
         try {
             await this.deviceApi.setOutletAction(this.outletId, action);
@@ -79,7 +79,7 @@ export class WattBoxPlatformAccessory {
         }
         catch (err) {
             if (err instanceof Error) {
-                this.log.error(`${this.logPrefix} setOutletStatus ${WattBoxOutletAction[action]} -> ${err.message}`)
+                this.log.error(`${this.logPrefix} setOutletStatus ${WattBoxOutletAction[action]} -> ${err.message}`);
             }
 
             throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
@@ -88,6 +88,6 @@ export class WattBoxPlatformAccessory {
 }
 
 export interface WattBoxPlatformAccessoryContext {
-    deviceConfig: WattBoxDeviceConfig
+    deviceConfig: WattBoxDeviceConfig;
     deviceInfo: WattBoxDeviceInfo;
 }

@@ -1,9 +1,9 @@
-import { Mutex, MutexInterface } from "async-mutex";
-import { Logger } from "homebridge";
-import { Socket } from "net";
-import { PromiseSocket } from "promise-socket";
+import { Mutex, MutexInterface } from 'async-mutex';
+import { Logger } from 'homebridge';
+import { Socket } from 'net';
+import { PromiseSocket } from 'promise-socket';
 
-import PubSub from "pubsub-js";
+import PubSub from 'pubsub-js';
 
 export class WattBoxDeviceApi {
     private readonly host: string;
@@ -37,55 +37,55 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?Model`);
             }
-            await client.write("?Model\n");
+            await client.write('?Model\n');
             const modelResponse = (await client.read()) as string;
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${modelResponse.trim()}`);
             }
             const modelMatch = /\?Model=(.*)\n/.exec(modelResponse);
-            const model = modelMatch ? modelMatch[1] : "Unknown";
+            const model = modelMatch ? modelMatch[1] : 'Unknown';
 
             // ?ServiceTag
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?ServiceTag`);
             }
-            await client.write("?ServiceTag\n");
+            await client.write('?ServiceTag\n');
             const serviceTagResponse = (await client.read()) as string;
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${serviceTagResponse.trim()}`);
             }
             const serviceTagMatch = /\?ServiceTag=(.*)\n/.exec(serviceTagResponse);
-            const serviceTag = serviceTagMatch ? serviceTagMatch[1] : "Unknown";
+            const serviceTag = serviceTagMatch ? serviceTagMatch[1] : 'Unknown';
 
             // ?Firmware
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?Firmware`);
             }
-            await client.write("?Firmware\n");
+            await client.write('?Firmware\n');
             const firmwareResponse = (await client.read()) as string;
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${firmwareResponse.trim()}`);
             }
             const firmwareMatch = /\?Firmware=(.*)\n/.exec(firmwareResponse);
-            const firmware = firmwareMatch ? firmwareMatch[1] : "Unknown";
+            const firmware = firmwareMatch ? firmwareMatch[1] : 'Unknown';
 
             // ?OutletName
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?OutletName`);
             }
-            await client.write("?OutletName\n");
+            await client.write('?OutletName\n');
             const outletNameResponse = (await client.read()) as string;
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${outletNameResponse.trim()}`);
             }
             const outletNameMatch = /\?OutletName=(.*)\n/.exec(outletNameResponse);
-            const outletNames = outletNameMatch ? outletNameMatch[1] : "";
+            const outletNames = outletNameMatch ? outletNameMatch[1] : '';
 
             // ?UPSConnection
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?UPSConnection`);
             }
-            await client.write("?UPSConnection\n");
+            await client.write('?UPSConnection\n');
             const upsConnectionResponse = (await client.read()) as string;
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${upsConnectionResponse.trim()}`);
@@ -97,7 +97,7 @@ export class WattBoxDeviceApi {
                 model: model,
                 serviceTag: serviceTag,
                 firmware: firmware,
-                outletNames: outletNames.split(",").map(x => x.substring(1, x.length - 1)),
+                outletNames: outletNames.split(',').map(x => x.substring(1, x.length - 1)),
                 upsConnection: upsConnection
             } as WattBoxDeviceInfo;
         }
@@ -117,19 +117,19 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?OutletStatus`);
             }
-            await client.write("?OutletStatus\n");
+            await client.write('?OutletStatus\n');
             const outletStatusResponse = (await client.read()) as string;
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${outletStatusResponse.trim()}`);
             }
             const outletStatusMatch = /\?OutletStatus=(.*)\n/.exec(outletStatusResponse);
-            const outletStatus = outletStatusMatch ? outletStatusMatch[1] : "";
+            const outletStatus = outletStatusMatch ? outletStatusMatch[1] : '';
 
             // ?UPSStatus
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?UPSStatus`);
             }
-            await client.write("?UPSStatus\n");
+            await client.write('?UPSStatus\n');
             const upsStatusResponse = (await client.read()) as string;
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${upsStatusResponse.trim()}`);
@@ -138,9 +138,9 @@ export class WattBoxDeviceApi {
             const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
 
             return {
-                outletStatus: outletStatus.split(",").map(x => parseInt(x) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
-                batteryLevel: upsStatus ? parseInt(upsStatus.split(",")[0]) : undefined,
-                powerLost: upsStatus ? upsStatus.split(",")[3] == "True" : undefined
+                outletStatus: outletStatus.split(',').map(x => parseInt(x) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
+                batteryLevel: upsStatus ? parseInt(upsStatus.split(',')[0]) : undefined,
+                powerLost: upsStatus ? upsStatus.split(',')[3] == 'True' : undefined
             } as WattBoxDeviceStatus;
         }
         finally {
@@ -167,12 +167,12 @@ export class WattBoxDeviceApi {
                 }
                 catch (err) {
                     if (err instanceof Error) {
-                        this.log.error(`${this.logPrefix} ${err.message}`)
+                        this.log.error(`${this.logPrefix} ${err.message}`);
                     }
                 }
 
                 setTimeout(poll, this.pollInterval * 1000);
-            }
+            };
 
             setTimeout(poll, 0);
         }
@@ -200,8 +200,8 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${outletSetResponse.trim()}`);
             }
-            if (outletSetResponse.includes("#Error")) {
-                throw new Error("Outlet Set Action Error!");
+            if (outletSetResponse.includes('#Error')) {
+                throw new Error('Outlet Set Action Error!');
             }
         }
         finally {
@@ -214,7 +214,7 @@ export class WattBoxDeviceApi {
             this.log.debug(`${this.logPrefix} Connecting to ${this.host}:23`);
         }
 
-        client.setEncoding("utf8");
+        client.setEncoding('utf8');
         client.setTimeout(10000);
 
         await client.connect(23, this.host);
@@ -222,7 +222,7 @@ export class WattBoxDeviceApi {
         // Please Login to Continue
         // Username:
         const pleaseLoginResponse = (await client.read()) as string;
-        if (!pleaseLoginResponse.includes("Username:")) {
+        if (!pleaseLoginResponse.includes('Username:')) {
             await client.read();
         }
         await client.write(`${this.username}\n`);
@@ -236,8 +236,8 @@ export class WattBoxDeviceApi {
         if (this.logDebug) {
             this.log.debug(`${this.logPrefix} ${loginResponse.trim()}`);
         }
-        if (loginResponse.includes("Invalid")) {
-            throw new Error("Invalid Login!");
+        if (loginResponse.includes('Invalid')) {
+            throw new Error('Invalid Login!');
         }
     }
 
@@ -248,11 +248,11 @@ export class WattBoxDeviceApi {
 
         try {
             // !Exit
-            await client.write("!Exit\n");
+            await client.write('!Exit\n');
             await client.end();
         }
         catch {
-            // continue, client may have already closed.. 
+            // continue, client may have already closed..
         }
         finally {
             mutexRelease();
