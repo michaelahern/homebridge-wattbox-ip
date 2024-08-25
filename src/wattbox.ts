@@ -42,7 +42,7 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${modelResponse.trim()}`);
             }
-            const modelMatch = modelResponse.match(/\?Model=(.*)\n/);
+            const modelMatch = /\?Model=(.*)\n/.exec(modelResponse);
             const model = modelMatch ? modelMatch[1] : "Unknown";
 
             // ?ServiceTag
@@ -54,7 +54,7 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${serviceTagResponse.trim()}`);
             }
-            const serviceTagMatch = serviceTagResponse.match(/\?ServiceTag=(.*)\n/);
+            const serviceTagMatch = /\?ServiceTag=(.*)\n/.exec(serviceTagResponse);
             const serviceTag = serviceTagMatch ? serviceTagMatch[1] : "Unknown";
 
             // ?Firmware
@@ -66,7 +66,7 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${firmwareResponse.trim()}`);
             }
-            const firmwareMatch = firmwareResponse.match(/\?Firmware=(.*)\n/);
+            const firmwareMatch = /\?Firmware=(.*)\n/.exec(firmwareResponse);
             const firmware = firmwareMatch ? firmwareMatch[1] : "Unknown";
 
             // ?OutletName
@@ -78,7 +78,7 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${outletNameResponse.trim()}`);
             }
-            const outletNameMatch = outletNameResponse.match(/\?OutletName=(.*)\n/);
+            const outletNameMatch = /\?OutletName=(.*)\n/.exec(outletNameResponse);
             const outletNames = outletNameMatch ? outletNameMatch[1] : "";
 
             // ?UPSConnection
@@ -90,7 +90,7 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${upsConnectionResponse.trim()}`);
             }
-            const upsConnectionMatch = upsConnectionResponse.toString().match(/\?UPSConnection=(.*)\n/);
+            const upsConnectionMatch = /\?UPSConnection=(.*)\n/.exec(upsConnectionResponse.toString());
             const upsConnection = upsConnectionMatch ? Boolean(parseInt(upsConnectionMatch[1])) : false;
 
             return {
@@ -122,7 +122,7 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${outletStatusResponse.trim()}`);
             }
-            const outletStatusMatch = outletStatusResponse.match(/\?OutletStatus=(.*)\n/);
+            const outletStatusMatch = /\?OutletStatus=(.*)\n/.exec(outletStatusResponse);
             const outletStatus = outletStatusMatch ? outletStatusMatch[1] : "";
 
             // ?UPSStatus
@@ -134,7 +134,7 @@ export class WattBoxDeviceApi {
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ${upsStatusResponse.trim()}`);
             }
-            const upsStatusMatch = upsStatusResponse.match(/\?UPSStatus=(.*)\n/);
+            const upsStatusMatch = /\?UPSStatus=(.*)\n/.exec(upsStatusResponse);
             const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
 
             return {
