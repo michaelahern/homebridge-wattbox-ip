@@ -5,6 +5,12 @@
   "schema": {
     "type": "object",
     "properties": {
+      "name": {
+        "title": "Plugin Name",
+        "type": "string",
+        "required": false,
+        "default": "WattBox"
+      },
       "devices": {
         "type": "array",
         "title": "WattBox Devices",
@@ -129,13 +135,14 @@
     },
     {
       "type": "section",
-      "title": "Advanced Settings",
+      "title": "Advanced Settings (Optional)",
       "expandable": true,
       "expanded": false,
       "items": [
         {
           "items": [
             "debug",
+            "name",
             "pollInterval"
           ]
         }
