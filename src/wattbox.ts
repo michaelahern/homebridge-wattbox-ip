@@ -136,9 +136,10 @@ export class WattBoxDeviceApi {
             }
             const upsStatusMatch = /\?UPSStatus=(.*)\n/.exec(upsStatusResponse);
             const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
+            const outletStatuses = await this.getPowerStatus(client);
 
             return {
-                outletStatus: outletStatus.split(',').map(x => parseInt(x) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
+                outletStatus: outletStatuses,
                 batteryLevel: upsStatus ? parseInt(upsStatus.split(',')[0]) : undefined,
                 powerLost: upsStatus ? upsStatus.split(',')[3] == 'True' : undefined
             } as WattBoxDeviceStatus;
@@ -146,6 +147,42 @@ export class WattBoxDeviceApi {
         finally {
             await this.logout(client, mutexRelease);
         }
+    }
+
+    private async getPowerStatus(client: PromiseSocket<Socket>): Promise<WattBoxOutletPowerStatus[]> {
+        const outletStatuses: WattBoxOutletPowerStatus[] = [];
+
+        // Assuming outlet IDs are 1, 2, 3, ..., N
+        for (let i = 0; i < 4; i++) { // Adjust the number of outlets as needed
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?PowerStatus for outlet ${i}`);
+            }
+            await client.write(`?PowerStatus\n`);
+            const powerStatusResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${powerStatusResponse.trim()}`);
+            }
+
+            const powerStatusMatch = /\?PowerStatus=(.*)\n/.exec(powerStatusResponse);
+            if (powerStatusMatch) {
+                const [current, power, voltage, safeVoltageStatus] = powerStatusMatch[1].split(',').map(val => parseFloat(val));
+                outletStatuses.push({
+                    current: current,
+                    power: power,
+                    voltage: voltage,
+                    safeVoltageStatus: safeVoltageStatus === 1 ? true : false
+                });
+            } else {
+                outletStatuses.push({
+                    current: 0,
+                    power: 0,
+                    voltage: 0,
+                    safeVoltageStatus: false
+                });
+            }
+        }
+
+        return outletStatuses;
     }
 
     public subscribeDeviceStatus(serviceTag: string, func: (deviceStatus: WattBoxDeviceStatus) => void): PubSubJS.Token {
@@ -269,9 +306,16 @@ export interface WattBoxDeviceInfo {
 }
 
 export interface WattBoxDeviceStatus {
-    outletStatus: WattBoxOutletStatus[];
+    outletStatus: WattBoxOutletPowerStatus[];
     batteryLevel?: number;
     powerLost?: boolean;
+}
+
+export interface WattBoxOutletPowerStatus {
+    current: number; // Amps
+    power: number; // Watts
+    voltage: number; // Volts
+    safeVoltageStatus: boolean; // True if voltage is safe
 }
 
 export enum WattBoxOutletAction {
