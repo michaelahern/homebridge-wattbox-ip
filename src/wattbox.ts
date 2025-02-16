@@ -137,10 +137,26 @@ export class WattBoxDeviceApi {
             const upsStatusMatch = /\?UPSStatus=(.*)\n/.exec(upsStatusResponse);
             const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
 
+            // ?PowerStatus
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ?PowerStatus`);
+            }
+            await client.write('?PowerStatus\n');
+            const powerStatusResponse = (await client.read()) as string;
+            if (this.logDebug) {
+                this.log.debug(`${this.logPrefix} ${powerStatusResponse.trim()}`);
+            }
+            const powerStatusMatch = /\?PowerStatus=(.*)\n/.exec(powerStatusResponse);
+            const powerStatus = powerStatusMatch ? powerStatusMatch[1].split(',').map(Number) : [0, 0, 0, 0];
+
             return {
                 outletStatus: outletStatus.split(',').map(x => parseInt(x) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
                 batteryLevel: upsStatus ? parseInt(upsStatus.split(',')[0]) : undefined,
-                powerLost: upsStatus ? upsStatus.split(',')[3] == 'True' : undefined
+                powerLost: upsStatus ? upsStatus.split(',')[3] == 'True' : undefined,
+                currentAmps: powerStatus[0],
+                powerWatts: powerStatus[1],
+                voltageVolts: powerStatus[2],
+                safeVoltageStatus: Boolean(powerStatus[3])
             } as WattBoxDeviceStatus;
         }
         finally {
@@ -272,6 +288,10 @@ export interface WattBoxDeviceStatus {
     outletStatus: WattBoxOutletStatus[];
     batteryLevel?: number;
     powerLost?: boolean;
+    currentAmps: number;
+    powerWatts: number;
+    voltageVolts: number;
+    safeVoltageStatus: boolean;
 }
 
 export enum WattBoxOutletAction {
