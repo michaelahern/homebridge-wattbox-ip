@@ -1,6 +1,7 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig } from 'homebridge';
 
 import { WattBoxConfig } from './config.js';
+import { WattBoxHomebridgeExtensions } from './homebridge.js';
 import { WattBoxPlatformAccessory, WattBoxPlatformAccessoryContext } from './platformAccessory.js';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
 import { WattBoxDeviceApi } from './wattbox.js';
@@ -10,9 +11,11 @@ type WattBoxHomebridgePlatformConfig = PlatformConfig & WattBoxConfig;
 export class WattBoxPlatform implements DynamicPlatformPlugin {
     public readonly accessories: PlatformAccessory[] = [];
     public readonly config: WattBoxHomebridgePlatformConfig;
+    public readonly homebridgeExtensions: WattBoxHomebridgeExtensions;
 
     constructor(public readonly log: Logger, public readonly platformConfig: PlatformConfig, public readonly api: API) {
         this.config = this.platformConfig as WattBoxHomebridgePlatformConfig;
+        this.homebridgeExtensions = new WattBoxHomebridgeExtensions(this.api);
 
         this.api.on('didFinishLaunching', async () => {
             await this.discoverDevices();

@@ -62,3 +62,7 @@ Field           	             | Description
 **devices[].resetOnlyOutlets** | (optional) Array of outlet names to send reset (off+on) outlet state change actions instead of power off, useful for outlets that should never be powered off like critical network equipment
 **debug**                      | (optional) Enable debug logging, disabled by default
 **pollInterval**	             | (optional) Interval in seconds for polling the latest outlet status, default is 10s
+
+## Notes
+
+ * Outlet power status (e.g. Amps/Current, Voltage, Watts/Consumption) are not visible in the Apple Home app, but are visible within some third-party HomeKit apps, including [Eve](https://www.evehome.com/en-us/eve-app) and [Home+](https://hochgatterer.me/home+/).

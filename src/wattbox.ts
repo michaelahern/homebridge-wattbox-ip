@@ -114,6 +114,7 @@ export class WattBoxDeviceApi {
             await this.login(client);
 
             // ?OutletStatus
+            // ?OutletStatus=0,1,0,1,0,1,0,1,...
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?OutletStatus`);
             }
@@ -123,9 +124,35 @@ export class WattBoxDeviceApi {
                 this.log.debug(`${this.logPrefix} ${outletStatusResponse.trim()}`);
             }
             const outletStatusMatch = /\?OutletStatus=(.*)\n/.exec(outletStatusResponse);
-            const outletStatus = outletStatusMatch ? outletStatusMatch[1] : '';
+            const outletStatusMatchResult = outletStatusMatch && outletStatusMatch.length == 2 ? outletStatusMatch[1] : '';
+            const outletStatus = outletStatusMatchResult.split(',').map(x => parseInt(x) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF);
+
+            // ?OutletPowerStatus
+            // ?OutletPowerStatus=Outlet,Watts,Amps,Volts
+            const outletPowerStatus: WattBoxOutletPowerStatus[] = [];
+            for (let i = 1; i <= outletStatus.length; i++) {
+                if (this.logDebug) {
+                    this.log.debug(`${this.logPrefix} ?OutletPowerStatus=${i}`);
+                }
+                await client.write(`?OutletPowerStatus=${i}\n`);
+                const outletPowerStatusResponse = (await client.read()) as string;
+                if (this.logDebug) {
+                    this.log.debug(`${this.logPrefix} ${outletPowerStatusResponse.trim()}`);
+                }
+                const outletPowerStatusMatch = /\?OutletPowerStatus=(.*)\n/.exec(outletPowerStatusResponse);
+                const outletPowerStatusMatchResult = outletPowerStatusMatch && outletPowerStatusMatch.length == 2 ? outletPowerStatusMatch[1] : undefined;
+                const outletPowerStatusMatchResultArray = outletPowerStatusMatchResult ? outletPowerStatusMatchResult.split(',') : undefined;
+                if (outletPowerStatusMatchResultArray && outletPowerStatusMatchResultArray.length == 4) {
+                    outletPowerStatus[i - 1] = {
+                        amps: parseFloat(outletPowerStatusMatchResultArray[2]),
+                        watts: parseFloat(outletPowerStatusMatchResultArray[1]),
+                        volts: parseFloat(outletPowerStatusMatchResultArray[3])
+                    };
+                }
+            }
 
             // ?UPSStatus
+            // ?UPSStatus=BatteryLevel(0-100%),BatteryLoad(0-100%),BatteryHealth(Good/Bad),PowerLost(True/False),BatteryRuntime(Mins),AlarmEnabled(True/False),AlamMuted(True/False)
             if (this.logDebug) {
                 this.log.debug(`${this.logPrefix} ?UPSStatus`);
             }
@@ -135,12 +162,16 @@ export class WattBoxDeviceApi {
                 this.log.debug(`${this.logPrefix} ${upsStatusResponse.trim()}`);
             }
             const upsStatusMatch = /\?UPSStatus=(.*)\n/.exec(upsStatusResponse);
-            const upsStatus = upsStatusMatch ? upsStatusMatch[1] : undefined;
+            const upsStatusMatchResult = upsStatusMatch && upsStatusMatch.length == 2 ? upsStatusMatch[1] : undefined;
+            const upsStatusMatchResultArray = upsStatusMatchResult ? upsStatusMatchResult.split(',') : undefined;
+            const upsStatusBatteryLevel = upsStatusMatchResultArray && upsStatusMatchResultArray.length == 7 ? parseInt(upsStatusMatchResultArray[0]) : undefined;
+            const upsStatusPowerLost = upsStatusMatchResultArray && upsStatusMatchResultArray.length == 7 ? upsStatusMatchResultArray[3] == 'True' : undefined;
 
             return {
-                outletStatus: outletStatus.split(',').map(x => parseInt(x) ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
-                batteryLevel: upsStatus ? parseInt(upsStatus.split(',')[0]) : undefined,
-                powerLost: upsStatus ? upsStatus.split(',')[3] == 'True' : undefined
+                outletStatus: outletStatus,
+                outletPowerStatus: outletPowerStatus,
+                batteryLevel: upsStatusBatteryLevel,
+                powerLost: upsStatusPowerLost
             } as WattBoxDeviceStatus;
         }
         finally {
@@ -270,6 +301,7 @@ export interface WattBoxDeviceInfo {
 
 export interface WattBoxDeviceStatus {
     outletStatus: WattBoxOutletStatus[];
+    outletPowerStatus: WattBoxOutletPowerStatus[];
     batteryLevel?: number;
     powerLost?: boolean;
 }
@@ -285,4 +317,10 @@ export enum WattBoxOutletStatus {
     UNKNOWN = -1,
     OFF = 0,
     ON = 1
+}
+
+export interface WattBoxOutletPowerStatus {
+    amps: number;
+    watts: number;
+    volts: number;
 }

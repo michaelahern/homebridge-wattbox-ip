@@ -10,6 +10,9 @@ export class WattBoxPlatformAccessory {
     private readonly logPrefix: string;
 
     private outletStatus = WattBoxOutletStatus.UNKNOWN;
+    private outletPowerAmps = 0;
+    private outletPowerWatts = 0;
+    private outletPowerVolts = 0;
 
     constructor(private readonly platform: WattBoxPlatform, private readonly accessory: PlatformAccessory, private readonly deviceApi: WattBoxDeviceApi, private readonly outletId: number, private readonly outletServiceId: string, private readonly outletName: string, private readonly outletIsReadOnly: boolean, private readonly outletIsResetOnly: boolean) {
         this.context = this.accessory.context as WattBoxPlatformAccessoryContext;
@@ -21,9 +24,24 @@ export class WattBoxPlatformAccessory {
             .setCharacteristic(this.platform.api.hap.Characteristic.Name, outletDisplayName)
             .setCharacteristic(this.platform.api.hap.Characteristic.ConfiguredName, outletDisplayName);
 
-        const outletServiceOnCharacteristic = outletService.getCharacteristic(this.platform.api.hap.Characteristic.On)
+        outletService.getCharacteristic(this.platform.api.hap.Characteristic.On)
             .onGet(this.getOutletStatus.bind(this))
             .onSet(this.setOutletStatus.bind(this));
+
+        // Outlet Power Status on WB-800, not WB-150/250...
+        if (this.context.deviceInfo.model.startsWith('WB-8')) {
+            outletService.addOptionalCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps);
+            outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)
+                .onGet(this.getOutletPowerAmps.bind(this));
+
+            outletService.addOptionalCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts);
+            outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts)
+                .onGet(this.getOutletPowerVolts.bind(this));
+
+            outletService.addOptionalCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts);
+            outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts)
+                .onGet(this.getOutletPowerWatts.bind(this));
+        }
 
         const batteryService = this.accessory.getService(this.platform.api.hap.Service.Battery);
 
@@ -37,9 +55,25 @@ export class WattBoxPlatformAccessory {
                     this.log.debug(`${this.logPrefix} pollOutletStatus ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
                 }
 
-                if (this.outletStatus !== deviceStatus.outletStatus[this.outletId - 1]) {
-                    this.outletStatus = deviceStatus.outletStatus[this.outletId - 1];
-                    outletServiceOnCharacteristic.updateValue(!!deviceStatus.outletStatus[this.outletId - 1]);
+                this.outletStatus = deviceStatus.outletStatus[this.outletId - 1];
+                outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!deviceStatus.outletStatus[this.outletId - 1]);
+
+                // Outlet Power Status on WB-800, not WB-150/250...
+                if (this.context.deviceInfo.model.startsWith('WB-8')) {
+                    if (deviceStatus.outletPowerStatus[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)) {
+                        this.outletPowerAmps = deviceStatus.outletPowerStatus[this.outletId - 1].amps;
+                        outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps).updateValue(this.outletPowerAmps);
+                    }
+
+                    if (deviceStatus.outletPowerStatus[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts)) {
+                        this.outletPowerVolts = deviceStatus.outletPowerStatus[this.outletId - 1].volts;
+                        outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts).updateValue(this.outletPowerVolts);
+                    }
+
+                    if (deviceStatus.outletPowerStatus[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts)) {
+                        this.outletPowerWatts = deviceStatus.outletPowerStatus[this.outletId - 1].watts;
+                        outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts).updateValue(this.outletPowerWatts);
+                    }
                 }
 
                 if (batteryService && deviceStatus.batteryLevel !== undefined && deviceStatus.powerLost !== undefined) {
@@ -62,6 +96,30 @@ export class WattBoxPlatformAccessory {
         }
 
         return this.outletStatus === WattBoxOutletStatus.ON;
+    }
+
+    private getOutletPowerAmps(): CharacteristicValue {
+        if (this.platform.config.debug) {
+            this.log.debug(`${this.logPrefix} getOutletPowerAmps ${this.outletPowerAmps}`);
+        }
+
+        return this.outletPowerAmps;
+    }
+
+    private getOutletPowerVolts(): CharacteristicValue {
+        if (this.platform.config.debug) {
+            this.log.debug(`${this.logPrefix} getOutletPowerVolts ${this.outletPowerVolts}`);
+        }
+
+        return this.outletPowerVolts;
+    }
+
+    private getOutletPowerWatts(): CharacteristicValue {
+        if (this.platform.config.debug) {
+            this.log.debug(`${this.logPrefix} getOutletPowerWatts ${this.outletPowerWatts}`);
+        }
+
+        return this.outletPowerWatts;
     }
 
     private async setOutletStatus(value: CharacteristicValue) {
