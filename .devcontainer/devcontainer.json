@@ -5,7 +5,8 @@
     "ghcr.io/devcontainers-extra/features/wireguard-apt-get:1": {}
   },
   "onCreateCommand": {
-    "homebridge-install": "sudo npm install -g --unsafe-perm homebridge homebridge-config-ui-x"
+    "homebridge-install": "sudo npm install -g --unsafe-perm homebridge homebridge-config-ui-x",
+    "iputils-install": "sudo apt-get update && sudo apt-get install -y iputils-ping traceroute"
   },
   "updateContentCommand": {
     "npm-install": "npm install"
