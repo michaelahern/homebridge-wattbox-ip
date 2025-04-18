@@ -1,5 +1,9 @@
 {
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22",
+  "features": {
+    "ghcr.io/tailscale/codespace/tailscale": {},
+    "ghcr.io/devcontainers-extra/features/wireguard-apt-get:1": {}
+  },
   "onCreateCommand": {
     "homebridge-install": "sudo npm install -g --unsafe-perm homebridge homebridge-config-ui-x"
   },
@@ -15,5 +19,5 @@
       "onAutoForward": "openBrowser"
     }
   },
-  "forwardPorts": [8581]
+  "forwardPorts": [ 8581 ]
 }
