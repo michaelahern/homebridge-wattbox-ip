@@ -1,0 +1,22 @@
+{
+    "bridge": {
+        "name": "Homebridge Wattbox",
+        "username": "0E:01:23:45:67:89",
+        "port": 58581,
+        "pin": "123-45-678",
+        "advertiser": "bonjour-hap"
+    },
+    "accessories": [],
+    "platforms": [
+        {
+            "name": "Config",
+            "port": 8581,
+            "platform": "config",
+            "theme": "green",
+            "log": {
+                "method": "file",
+                "path": "~/.homebridge/homebridge.log"
+            }
+        }
+    ]
+}
