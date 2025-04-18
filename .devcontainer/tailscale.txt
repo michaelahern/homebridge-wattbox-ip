@@ -1,0 +1,3 @@
+https://tailscale.com/kb/1160/github-codespaces
+
+$ sudo tailscale up --accept-routes
