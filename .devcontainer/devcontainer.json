@@ -14,6 +14,9 @@
   "postCreateCommand": {
     "homebridge-config": ".devcontainer/postcreate.sh"
   },
+  "postStartCommand": {
+    "tailscale-up": "[ -n \"${TS_AUTH_KEY}\" ] && sudo tailscale up --accept-routes --auth-key=$TS_AUTH_KEY"
+  },
   "portsAttributes": {
     "8581": {
       "label": "Homebridge",
