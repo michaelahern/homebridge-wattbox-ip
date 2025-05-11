@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { Logger } from 'homebridge';
-import { WattBoxClient, WattBoxOutletAction, WattBoxOutletPowerMetrics } from 'wattbox-api';
+import { WattBoxClient, WattBoxError, WattBoxOutletAction, WattBoxOutletPowerMetrics, WattBoxUPSMetrics } from 'wattbox-api';
 
 export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
     private readonly client: WattBoxClient;
@@ -8,6 +8,9 @@ export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
     private readonly log: Logger;
     private readonly logDebug: boolean;
     private readonly logPrefix: string;
+
+    #emitOutletMetrics = false;
+    #emitUPSMetrics = false;
 
     constructor(host: string, username: string, password: string, pollInterval: number, log: Logger, logDebug: boolean, logPrefix: string) {
         super();
@@ -24,21 +27,48 @@ export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
             password: password
         });
 
+        // TODO: Replace Ready with a more specific event
         this.client.on('ready', () => {
             const poll = async () => {
                 try {
-                    const status = await this.getDeviceStatus();
-                    this.emit('deviceStatus', status);
+                    const outletStatus = await this.client.getOutletStatus();
+                    if (outletStatus) {
+                        this.emit('outletStatus', outletStatus.map(x => x ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF));
+                    }
+
+                    if (this.#emitOutletMetrics) {
+                        const outletPowerMetrics: WattBoxOutletPowerMetrics[] = [];
+                        for (let i = 1; i <= outletStatus.length; i++) {
+                            const outletPowerMetric = await this.client.getOutletPowerMetrics(i);
+                            if (outletPowerMetric) {
+                                outletPowerMetrics[i - 1] = outletPowerMetric;
+                            }
+                        }
+                        if (outletPowerMetrics) {
+                            this.emit('outletMetrics', outletPowerMetrics);
+                        }
+                    }
+
+                    if (this.#emitUPSMetrics) {
+                        const upsMetrics = await this.client.getUPSMetrics();
+                        if (upsMetrics) {
+                            this.emit('upsMetrics', upsMetrics);
+                        }
+                    }
                 }
                 catch (err) {
-                    // TODO: Handle error
-                    if (err instanceof Error) {
-                        this.log.error(`${this.logPrefix} Error polling device status: ${err.message}`);
+                    if (err instanceof WattBoxError) {
+                        this.log.error(`${this.logPrefix} WattBoxError ${err.message}`);
                     }
                 }
             };
 
+            setTimeout(poll, 5 * 1000);
             setInterval(poll, this.pollInterval * 1000);
+        });
+
+        this.client.on('outletStatus', (outletStatus: boolean[]) => {
+            this.emit('outletStatus', outletStatus.map(x => x ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF));
         });
 
         if (this.logDebug) {
@@ -57,35 +87,27 @@ export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
     }
 
     public async getDeviceInfo() {
-        return {
-            model: await this.client.getModel(),
-            serviceTag: await this.client.getServiceTag(),
-            firmware: await this.client.getFirmware(),
-            outletNames: await this.client.getOutletNames(),
-            upsConnected: await this.client.getUPSConnected()
-        } as WattBoxDeviceInfo;
-    }
+        const model = await this.client.getModel();
+        const serviceTag = await this.client.getServiceTag();
+        const firmware = await this.client.getFirmware();
+        const outletNames = await this.client.getOutletNames();
+        const upsConnected = await this.client.getUPSConnected();
 
-    public async getDeviceStatus() {
-        const outletStatus = await this.client.getOutletStatus();
-
-        // TODO: Ignore on WB-150/250
-        const outletPowerStatus: WattBoxOutletPowerMetrics[] = [];
-        for (let i = 1; i <= outletStatus.length; i++) {
-            const outletPowerMetrics = await this.client.getOutletPowerMetrics(i);
-            if (outletPowerMetrics) {
-                outletPowerStatus[i - 1] = outletPowerMetrics;
-            }
+        if (model.startsWith('WB-8')) {
+            this.#emitOutletMetrics = true;
         }
 
-        const upsMetrics = await this.client.getUPSMetrics();
+        if (upsConnected) {
+            this.#emitUPSMetrics = true;
+        }
 
         return {
-            outletStatus: outletStatus.map(x => x ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF),
-            outletPowerStatus: outletPowerStatus,
-            batteryLevel: upsMetrics?.batteryLoad,
-            powerLost: upsMetrics?.powerLost
-        } as WattBoxDeviceStatus;
+            model: model,
+            serviceTag: serviceTag,
+            firmware: firmware,
+            outletNames: outletNames,
+            upsConnected: upsConnected
+        } as WattBoxDeviceInfo;
     }
 
     public async setOutletAction(id: number, action: WattBoxOutletAction) {
@@ -101,15 +123,10 @@ export interface WattBoxDeviceInfo {
     upsConnected: boolean;
 }
 
-export interface WattBoxDeviceStatus {
-    outletStatus: WattBoxOutletStatus[];
-    outletPowerStatus: WattBoxOutletPowerMetrics[];
-    batteryLevel?: number;
-    powerLost?: boolean;
-}
-
 export interface WattBoxEvents {
-    deviceStatus: [deviceStatus: WattBoxDeviceStatus];
+    outletStatus: [outletStatus: WattBoxOutletStatus[]];
+    outletMetrics: [outletMetrics: WattBoxOutletPowerMetrics[]];
+    upsMetrics: [upsMetrics: WattBoxUPSMetrics];
 }
 
 export enum WattBoxOutletStatus {

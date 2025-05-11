@@ -1,9 +1,9 @@
 import { CharacteristicValue, Logger, PlatformAccessory } from 'homebridge';
+import { WattBoxOutletAction } from 'wattbox-api';
 
 import { WattBoxDeviceConfig } from './config.js';
 import { WattBoxPlatform } from './platform.js';
 import { WattBoxDeviceApi, WattBoxDeviceInfo, WattBoxOutletStatus } from './wattbox.js';
-import { WattBoxOutletAction } from 'wattbox-api';
 
 export class WattBoxPlatformAccessory {
     private readonly context: WattBoxPlatformAccessoryContext;
@@ -46,40 +46,41 @@ export class WattBoxPlatformAccessory {
 
         const batteryService = this.accessory.getService(this.platform.api.hap.Service.Battery);
 
-        this.deviceApi.on('deviceStatus', (deviceStatus) => {
-            if (WattBoxOutletStatus[this.outletStatus] != WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]) {
-                this.log.info(`${this.logPrefix} pollOutletStatus ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
+        this.deviceApi.on('outletStatus', (outletStatus) => {
+            if (WattBoxOutletStatus[this.outletStatus] != WattBoxOutletStatus[outletStatus[this.outletId - 1]]) {
+                this.log.info(`${this.logPrefix} pollOutletStatus ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[outletStatus[this.outletId - 1]]}`);
             }
             else if (this.platform.config.debug) {
-                this.log.debug(`${this.logPrefix} pollOutletStatus ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[deviceStatus.outletStatus[this.outletId - 1]]}`);
+                this.log.debug(`${this.logPrefix} pollOutletStatus ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[outletStatus[this.outletId - 1]]}`);
             }
 
-            this.outletStatus = deviceStatus.outletStatus[this.outletId - 1];
-            outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!deviceStatus.outletStatus[this.outletId - 1]);
+            this.outletStatus = outletStatus[this.outletId - 1];
+            outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!outletStatus[this.outletId - 1]);
+        });
 
-            // Outlet Power Status on WB-800, not WB-150/250...
-            if (this.context.deviceInfo.model.startsWith('WB-8')) {
-                if (deviceStatus.outletPowerStatus[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)) {
-                    this.outletPowerAmps = deviceStatus.outletPowerStatus[this.outletId - 1].amps;
-                    outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps).updateValue(this.outletPowerAmps);
-                }
-
-                if (deviceStatus.outletPowerStatus[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts)) {
-                    this.outletPowerVolts = deviceStatus.outletPowerStatus[this.outletId - 1].volts;
-                    outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts).updateValue(this.outletPowerVolts);
-                }
-
-                if (deviceStatus.outletPowerStatus[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts)) {
-                    this.outletPowerWatts = deviceStatus.outletPowerStatus[this.outletId - 1].watts;
-                    outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts).updateValue(this.outletPowerWatts);
-                }
+        this.deviceApi.on('outletMetrics', (outletMetrics) => {
+            if (outletMetrics[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)) {
+                this.outletPowerAmps = outletMetrics[this.outletId - 1].amps;
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps).updateValue(this.outletPowerAmps);
             }
 
-            if (batteryService && deviceStatus.batteryLevel !== undefined && deviceStatus.powerLost !== undefined) {
+            if (outletMetrics[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts)) {
+                this.outletPowerVolts = outletMetrics[this.outletId - 1].volts;
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts).updateValue(this.outletPowerVolts);
+            }
+
+            if (outletMetrics[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts)) {
+                this.outletPowerWatts = outletMetrics[this.outletId - 1].watts;
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts).updateValue(this.outletPowerWatts);
+            }
+        });
+
+        this.deviceApi.on('upsMetrics', (upsMetrics) => {
+            if (batteryService) {
                 batteryService
-                    .updateCharacteristic(this.platform.api.hap.Characteristic.BatteryLevel, deviceStatus.batteryLevel)
-                    .updateCharacteristic(this.platform.api.hap.Characteristic.ChargingState, deviceStatus.powerLost ? this.platform.api.hap.Characteristic.ChargingState.NOT_CHARGING : this.platform.api.hap.Characteristic.ChargingState.CHARGING)
-                    .updateCharacteristic(this.platform.api.hap.Characteristic.StatusLowBattery, deviceStatus.powerLost ? this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+                    .updateCharacteristic(this.platform.api.hap.Characteristic.BatteryLevel, upsMetrics.batteryCharge)
+                    .updateCharacteristic(this.platform.api.hap.Characteristic.ChargingState, upsMetrics.powerLost ? this.platform.api.hap.Characteristic.ChargingState.NOT_CHARGING : this.platform.api.hap.Characteristic.ChargingState.CHARGING)
+                    .updateCharacteristic(this.platform.api.hap.Characteristic.StatusLowBattery, upsMetrics.powerLost ? this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
             }
         });
     }
