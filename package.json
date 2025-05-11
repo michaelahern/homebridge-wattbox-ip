@@ -1,8 +1,7 @@
 {
   "name": "homebridge-wattbox-ip",
   "displayName": "Homebridge WattBox",
-  "type": "module",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.0-alpha.1",
   "description": "A Homebridge plugin for WattBox IP Power devices.",
   "keywords": [
     "wattbox",
@@ -18,15 +17,19 @@
   },
   "license": "ISC",
   "author": "Michael Ahern <michael.ahern@gmail.com>",
-  "funding": {
-    "type": "paypal",
-    "url": "https://paypal.me/michaeljahern"
-  },
   "files": [
-    "config.schema.json",
-    "dist"
+    "./config.schema.json",
+    "./dist"
   ],
-  "main": "dist/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./dist/module.js",
+      "types": "./dist/module.d.ts"
+    }
+  },
+  "main": "./dist/module.js",
+  "types": "./dist/module.d.ts",
   "repository": {
     "type": "git",
     "url": "git://github.com/michaelahern/homebridge-wattbox-ip.git"
@@ -40,7 +43,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "wattbox-api": "~1.0"
+    "wattbox-api": "^1"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^4",
