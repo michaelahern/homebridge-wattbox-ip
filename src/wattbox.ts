@@ -27,46 +27,6 @@ export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
             password: password
         });
 
-        // TODO: Replace Ready with a more specific event
-        this.client.on('ready', () => {
-            const poll = async () => {
-                try {
-                    const outletStatus = await this.client.getOutletStatus();
-                    if (outletStatus) {
-                        this.emit('outletStatus', outletStatus.map(x => x ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF));
-                    }
-
-                    if (this.#emitOutletMetrics) {
-                        const outletPowerMetrics: WattBoxOutletPowerMetrics[] = [];
-                        for (let i = 1; i <= outletStatus.length; i++) {
-                            const outletPowerMetric = await this.client.getOutletPowerMetrics(i);
-                            if (outletPowerMetric) {
-                                outletPowerMetrics[i - 1] = outletPowerMetric;
-                            }
-                        }
-                        if (outletPowerMetrics) {
-                            this.emit('outletMetrics', outletPowerMetrics);
-                        }
-                    }
-
-                    if (this.#emitUPSMetrics) {
-                        const upsMetrics = await this.client.getUPSMetrics();
-                        if (upsMetrics) {
-                            this.emit('upsMetrics', upsMetrics);
-                        }
-                    }
-                }
-                catch (err) {
-                    if (err instanceof WattBoxError) {
-                        this.log.error(`${this.logPrefix} WattBoxError ${err.message}`);
-                    }
-                }
-            };
-
-            setTimeout(poll, 5 * 1000);
-            setInterval(poll, this.pollInterval * 1000);
-        });
-
         this.client.on('outletStatus', (outletStatus: boolean[]) => {
             this.emit('outletStatus', outletStatus.map(x => x ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF));
         });
@@ -112,6 +72,45 @@ export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
 
     public async setOutletAction(id: number, action: WattBoxOutletAction) {
         this.client.setOutletAction(id, action);
+    }
+
+    public async startPolling() {
+        const poll = async () => {
+            try {
+                const outletStatus = await this.client.getOutletStatus();
+                if (outletStatus) {
+                    this.emit('outletStatus', outletStatus.map(x => x ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF));
+                }
+
+                if (this.#emitOutletMetrics) {
+                    const outletPowerMetrics: WattBoxOutletPowerMetrics[] = [];
+                    for (let i = 1; i <= outletStatus.length; i++) {
+                        const outletPowerMetric = await this.client.getOutletPowerMetrics(i);
+                        if (outletPowerMetric) {
+                            outletPowerMetrics[i - 1] = outletPowerMetric;
+                        }
+                    }
+                    if (outletPowerMetrics) {
+                        this.emit('outletMetrics', outletPowerMetrics);
+                    }
+                }
+
+                if (this.#emitUPSMetrics) {
+                    const upsMetrics = await this.client.getUPSMetrics();
+                    if (upsMetrics) {
+                        this.emit('upsMetrics', upsMetrics);
+                    }
+                }
+            }
+            catch (err) {
+                if (err instanceof WattBoxError) {
+                    this.log.error(`${this.logPrefix} WattBoxError ${err.message}`);
+                }
+            }
+        };
+
+        poll();
+        setInterval(poll, this.pollInterval * 1000);
     }
 }
 

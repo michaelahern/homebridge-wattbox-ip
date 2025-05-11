@@ -104,6 +104,8 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             }
 
             discoveredAccessoryUUIDs.add(uuid);
+
+            deviceApi.startPolling();
         }
 
         const orphanedAccessories = this.accessories.filter(accessory => !discoveredAccessoryUUIDs.has(accessory.UUID));
