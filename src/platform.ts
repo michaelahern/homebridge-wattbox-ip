@@ -35,9 +35,10 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
             const accessory = existingAccessory ?? new this.api.platformAccessory(deviceConfig.name, uuid);
 
-            const deviceApi = new WattBoxDeviceApi(deviceConfig.host, deviceConfig.username, deviceConfig.password, this.config.pollInterval ?? 10, this.log, this.config.debug ?? false, `[${accessory.displayName}]`);
+            const deviceApi = new WattBoxDeviceApi(deviceConfig.host, deviceConfig.username, deviceConfig.password, this.log, this.config.debug ?? false, `[${accessory.displayName}]`);
 
             try {
+                await deviceApi.connect();
                 const deviceInfo = await deviceApi.getDeviceInfo();
 
                 if (deviceConfig.serviceTag != deviceInfo.serviceTag) {
@@ -68,7 +69,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
                 .setCharacteristic(this.api.hap.Characteristic.SerialNumber, (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.serviceTag)
                 .setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.firmware);
 
-            if ((accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.upsConnection) {
+            if ((accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.upsConnected) {
                 if (!accessory.getService(this.api.hap.Service.Battery)) {
                     accessory.addService(this.api.hap.Service.Battery, 'UPS Battery Backup');
                 }
@@ -103,6 +104,8 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             }
 
             discoveredAccessoryUUIDs.add(uuid);
+
+            deviceApi.startPolling(this.config.pollInterval ?? 20);
         }
 
         const orphanedAccessories = this.accessories.filter(accessory => !discoveredAccessoryUUIDs.has(accessory.UUID));

@@ -86,7 +86,7 @@
         "title": "Polling Interval (seconds)",
         "type": "integer",
         "required": false,
-        "default": 10
+        "default": 20
       }
     }
   },

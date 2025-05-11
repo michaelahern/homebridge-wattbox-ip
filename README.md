@@ -3,8 +3,8 @@
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![npm](https://badgen.net/npm/v/homebridge-wattbox-ip)](https://www.npmjs.com/package/homebridge-wattbox-ip)
 [![npm](https://badgen.net/npm/dt/homebridge-wattbox-ip)](https://www.npmjs.com/package/homebridge-wattbox-ip)
+[![node](https://badgen.net/npm/node/homebridge-wattbox-ip)](https://www.npmjs.com/package/homebridge-wattbox-ip)
 [![Build](https://github.com/michaelahern/homebridge-wattbox-ip/actions/workflows/build.yml/badge.svg)](https://github.com/michaelahern/homebridge-wattbox-ip/actions/workflows/build.yml)
-[![Donate](https://badgen.net/badge/Donate/PayPal/green)](https://paypal.me/michaeljahern)
 
 A [Homebridge](https://homebridge.io) plugin for [WattBox IP Power](https://www.snapav.com/shop/en/snapav/wattbox-ip-power) devices.
 
@@ -42,7 +42,7 @@ Example platform config in the Homebridge config.json:
       }
     ],
     "debug": false,
-    "pollInterval": 10
+    "pollInterval": 20
   }
 ]
 ```
@@ -61,7 +61,7 @@ Field           	             | Description
 **devices[].readOnlyOutlets**  | (optional) Array of outlet names to disable changing outlet state, useful for outlets you want to view the state of but not control via HomeKit
 **devices[].resetOnlyOutlets** | (optional) Array of outlet names to send reset (off+on) outlet state change actions instead of power off, useful for outlets that should never be powered off like critical network equipment
 **debug**                      | (optional) Enable debug logging, disabled by default
-**pollInterval**	             | (optional) Interval in seconds for polling the latest outlet status, default is 10s
+**pollInterval**	             | (optional) Interval in seconds for polling the outlet data, default is 20s
 
 ## Notes
 
