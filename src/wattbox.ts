@@ -1,9 +1,8 @@
+import { EventEmitter } from 'events';
 import { Logger } from 'homebridge';
 import { WattBoxClient } from 'wattbox-api';
 
-import PubSub from 'pubsub-js';
-
-export class WattBoxDeviceApi {
+export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
     private readonly client: WattBoxClient;
     private readonly pollInterval: number;
     private readonly log: Logger;
@@ -11,6 +10,9 @@ export class WattBoxDeviceApi {
     private readonly logPrefix: string;
 
     constructor(host: string, username: string, password: string, pollInterval: number, log: Logger, logDebug: boolean, logPrefix: string) {
+        super();
+        this.setMaxListeners(128);
+
         this.pollInterval = pollInterval;
         this.log = log;
         this.logDebug = logDebug;
@@ -22,15 +24,32 @@ export class WattBoxDeviceApi {
             password: password
         });
 
-        // if (this.logDebug) {
-        this.client.on('debugmsg', (message: string) => {
-            this.log.info(`${this.logPrefix} [data]: ${message}`);
+        this.client.on('ready', () => {
+            const poll = async () => {
+                try {
+                    const status = await this.getDeviceStatus();
+                    this.emit('deviceStatus', status);
+                }
+                catch (err) {
+                    // TODO: Handle error
+                    if (err instanceof Error) {
+                        this.log.error(`${this.logPrefix} Error polling device status: ${err.message}`);
+                    }
+                }
+            };
+
+            setInterval(poll, this.pollInterval * 1000);
         });
 
-        this.client.on('debugsock', (event: string, payload?: string) => {
-            this.log.info(`${this.logPrefix} [sock]: [${event}] ${payload ? payload.replace(/\n/g, '\\n') : ''}`);
-        });
-        // }
+        if (this.logDebug) {
+            this.client.on('debugmsg', (message: string) => {
+                this.log.debug(`${this.logPrefix} [data]: ${message}`);
+            });
+
+            this.client.on('debugsock', (event: string, payload?: string) => {
+                this.log.debug(`${this.logPrefix} [sock]: [${event}] ${payload ? payload.replace(/\n/g, '\\n') : ''}`);
+            });
+        }
     }
 
     public async connect() {
@@ -56,6 +75,7 @@ export class WattBoxDeviceApi {
     public async getDeviceStatus() {
         const outletStatus = await this.client.getOutletStatus();
 
+        // TODO: Ignore on WB-150/250
         const outletPowerStatus: WattBoxOutletPowerStatus[] = [];
         for (let i = 1; i <= outletStatus.length; i++) {
             const outletPowerMetrics = await this.client.getOutletPowerMetrics(i);
@@ -78,42 +98,6 @@ export class WattBoxDeviceApi {
         } as WattBoxDeviceStatus;
     }
 
-    public subscribeDeviceStatus(serviceTag: string, func: (deviceStatus: WattBoxDeviceStatus) => void): PubSubJS.Token {
-        const topic = `homebridge:wattbox:${serviceTag}`;
-        const token = PubSub.subscribe(topic, (_, data) => {
-            if (data) {
-                func(data);
-            }
-        });
-
-        if (PubSub.countSubscriptions(topic) === 1) {
-            const poll = async () => {
-                if (PubSub.countSubscriptions(topic) === 0) {
-                    return;
-                }
-
-                try {
-                    PubSub.publish(topic, await this.getDeviceStatus());
-                }
-                catch (err) {
-                    if (err instanceof Error) {
-                        this.log.error(`${this.logPrefix} ${err.message}`);
-                    }
-                }
-
-                setTimeout(poll, this.pollInterval * 1000);
-            };
-
-            setTimeout(poll, 0);
-        }
-
-        return token;
-    }
-
-    public unsubscribeDeviceStatus(token: PubSubJS.Token): void {
-        PubSub.unsubscribe(token);
-    }
-
     public async setOutletAction(id: number, action: WattBoxOutletAction) {
         this.client.setOutletAction(id, action);
     }
@@ -132,6 +116,10 @@ export interface WattBoxDeviceStatus {
     outletPowerStatus: WattBoxOutletPowerStatus[];
     batteryLevel?: number;
     powerLost?: boolean;
+}
+
+export interface WattBoxEvents {
+    deviceStatus: [deviceStatus: WattBoxDeviceStatus];
 }
 
 export enum WattBoxOutletAction {
