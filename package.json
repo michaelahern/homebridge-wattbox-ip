@@ -2,7 +2,7 @@
   "name": "homebridge-wattbox-ip",
   "displayName": "Homebridge WattBox",
   "type": "module",
-  "version": "1.2.0",
+  "version": "2.0.0-alpha.0",
   "description": "A Homebridge plugin for WattBox IP Power devices.",
   "keywords": [
     "wattbox",
@@ -32,24 +32,22 @@
     "url": "git://github.com/michaelahern/homebridge-wattbox-ip.git"
   },
   "scripts": {
-    "eslint": "eslint src/**.ts --max-warnings=0",
-    "eslint-fix": "eslint src/**.ts --max-warnings=0 --fix",
-    "lint": "npm run eslint",
-    "lint-fix": "npm run eslint-fix",
-    "fmt": "npm run lint-fix",
-    "build": "npm run clean && tsc",
+    "build": "npm run clean && npm run lint && tsc",
     "clean": "rimraf ./dist",
-    "prepublishOnly": "npm run lint && npm run build",
-    "homebridge": "npm run build && npm link && homebridge -I 2>&1 | tee ~/.homebridge/homebridge.log"
+    "homebridge": "npm run build && npm link && homebridge -I 2>&1 | tee ~/.homebridge/homebridge.log",
+    "lint": "eslint src/**/*.ts --max-warnings=0",
+    "lint-fix": "eslint src/**/*.ts --max-warnings=0 --fix",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "async-mutex": "~0.5",
     "promise-socket": "~8.0",
-    "pubsub-js": "~1.9"
+    "pubsub-js": "~1.9",
+    "wattbox-api": "~1.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^4",
-    "@types/node": "^22",
+    "@types/node": "^20",
     "@types/pubsub-js": "~1.8",
     "eslint": "^9",
     "homebridge": "~1.9",
@@ -59,6 +57,6 @@
   },
   "engines": {
     "homebridge": ">=1.8.0 || >=2.0.0",
-    "node": ">=18"
+    "node": ">=20"
   }
 }
