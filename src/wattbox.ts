@@ -25,6 +25,10 @@ export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
         this.#logDebug = logDebug;
         this.#logPrefix = logPrefix;
 
+        this.#client.on('ready', () => {
+            this.#log.success(`${this.#logPrefix} Connected!`);
+        });
+
         this.#client.on('outletStatus', (outletStatus: boolean[]) => {
             this.emit('outletStatus', outletStatus.map(x => x ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF));
         });
