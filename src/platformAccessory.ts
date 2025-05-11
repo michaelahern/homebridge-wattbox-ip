@@ -29,7 +29,7 @@ export class WattBoxPlatformAccessory {
             .onGet(this.getOutletStatus.bind(this))
             .onSet(this.setOutletStatus.bind(this));
 
-        // Outlet Power Status on WB-800, not WB-150/250...
+        // Outlet power metrics on WB-800 series only...
         if (this.context.deviceInfo.model.startsWith('WB-8')) {
             outletService.addOptionalCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps);
             outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)
@@ -44,43 +44,44 @@ export class WattBoxPlatformAccessory {
                 .onGet(this.getOutletPowerWatts.bind(this));
         }
 
-        const batteryService = this.accessory.getService(this.platform.api.hap.Service.Battery);
-
+        // On outlet status change...
         this.deviceApi.on('outletStatus', (outletStatus) => {
-            if (WattBoxOutletStatus[this.outletStatus] != WattBoxOutletStatus[outletStatus[this.outletId - 1]]) {
-                this.log.info(`${this.logPrefix} pollOutletStatus ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[outletStatus[this.outletId - 1]]}`);
+            const newOutletStatus = outletStatus[this.outletId - 1];
+            if (WattBoxOutletStatus[this.outletStatus] != WattBoxOutletStatus[newOutletStatus]) {
+                this.log.info(`${this.logPrefix} ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
             }
             else if (this.platform.config.debug) {
-                this.log.debug(`${this.logPrefix} pollOutletStatus ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[outletStatus[this.outletId - 1]]}`);
+                this.log.debug(`${this.logPrefix} ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
             }
 
-            this.outletStatus = outletStatus[this.outletId - 1];
-            outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!outletStatus[this.outletId - 1]);
+            this.outletStatus = newOutletStatus;
+            outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!newOutletStatus);
         });
 
+        // On outlet power metrics change...
         this.deviceApi.on('outletMetrics', (outletMetrics) => {
-            if (outletMetrics[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)) {
-                this.outletPowerAmps = outletMetrics[this.outletId - 1].amps;
-                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps).updateValue(this.outletPowerAmps);
+            const outletMetric = outletMetrics[this.outletId - 1];
+            if (outletMetric && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)) {
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps).updateValue(outletMetric.amps);
             }
 
-            if (outletMetrics[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts)) {
-                this.outletPowerVolts = outletMetrics[this.outletId - 1].volts;
-                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts).updateValue(this.outletPowerVolts);
+            if (outletMetric && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts)) {
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts).updateValue(outletMetric.volts);
             }
 
-            if (outletMetrics[this.outletId - 1] && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts)) {
-                this.outletPowerWatts = outletMetrics[this.outletId - 1].watts;
-                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts).updateValue(this.outletPowerWatts);
+            if (outletMetric && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts)) {
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts).updateValue(outletMetric.watts);
             }
         });
 
+        // On UPS metrics change...
         this.deviceApi.on('upsMetrics', (upsMetrics) => {
+            const batteryService = this.accessory.getService(this.platform.api.hap.Service.Battery);
             if (batteryService) {
                 batteryService
                     .updateCharacteristic(this.platform.api.hap.Characteristic.BatteryLevel, upsMetrics.batteryCharge)
                     .updateCharacteristic(this.platform.api.hap.Characteristic.ChargingState, upsMetrics.powerLost ? this.platform.api.hap.Characteristic.ChargingState.NOT_CHARGING : this.platform.api.hap.Characteristic.ChargingState.CHARGING)
-                    .updateCharacteristic(this.platform.api.hap.Characteristic.StatusLowBattery, upsMetrics.powerLost ? this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
+                    .updateCharacteristic(this.platform.api.hap.Characteristic.StatusLowBattery, upsMetrics.batteryCharge < 20 ? this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW : this.platform.api.hap.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL);
             }
         });
     }
