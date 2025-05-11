@@ -38,6 +38,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             const deviceApi = new WattBoxDeviceApi(deviceConfig.host, deviceConfig.username, deviceConfig.password, this.config.pollInterval ?? 10, this.log, this.config.debug ?? false, `[${accessory.displayName}]`);
 
             try {
+                await deviceApi.connect();
                 const deviceInfo = await deviceApi.getDeviceInfo();
 
                 if (deviceConfig.serviceTag != deviceInfo.serviceTag) {

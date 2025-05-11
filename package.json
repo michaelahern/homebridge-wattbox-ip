@@ -40,8 +40,6 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "async-mutex": "~0.5",
-    "promise-socket": "~8.0",
     "pubsub-js": "~1.9",
     "wattbox-api": "~1.0"
   },
