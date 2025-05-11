@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { Logger } from 'homebridge';
-import { WattBoxClient } from 'wattbox-api';
+import { WattBoxClient, WattBoxOutletAction, WattBoxOutletPowerMetrics } from 'wattbox-api';
 
 export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
     private readonly client: WattBoxClient;
@@ -57,18 +57,12 @@ export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
     }
 
     public async getDeviceInfo() {
-        const model = await this.client.getModel();
-        const serviceTag = await this.client.getServiceTag();
-        const firmware = await this.client.getFirmware();
-        const outletNames = await this.client.getOutletNames();
-        const upsConnection = await this.client.getUPSConnected();
-
         return {
-            model: model,
-            serviceTag: serviceTag,
-            firmware: firmware,
-            outletNames: outletNames,
-            upsConnection: upsConnection
+            model: await this.client.getModel(),
+            serviceTag: await this.client.getServiceTag(),
+            firmware: await this.client.getFirmware(),
+            outletNames: await this.client.getOutletNames(),
+            upsConnected: await this.client.getUPSConnected()
         } as WattBoxDeviceInfo;
     }
 
@@ -76,15 +70,11 @@ export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
         const outletStatus = await this.client.getOutletStatus();
 
         // TODO: Ignore on WB-150/250
-        const outletPowerStatus: WattBoxOutletPowerStatus[] = [];
+        const outletPowerStatus: WattBoxOutletPowerMetrics[] = [];
         for (let i = 1; i <= outletStatus.length; i++) {
             const outletPowerMetrics = await this.client.getOutletPowerMetrics(i);
             if (outletPowerMetrics) {
-                outletPowerStatus[i - 1] = {
-                    amps: outletPowerMetrics.amps,
-                    watts: outletPowerMetrics.watts,
-                    volts: outletPowerMetrics.volts
-                };
+                outletPowerStatus[i - 1] = outletPowerMetrics;
             }
         }
 
@@ -108,12 +98,12 @@ export interface WattBoxDeviceInfo {
     serviceTag: string;
     firmware: string;
     outletNames: string[];
-    upsConnection: boolean;
+    upsConnected: boolean;
 }
 
 export interface WattBoxDeviceStatus {
     outletStatus: WattBoxOutletStatus[];
-    outletPowerStatus: WattBoxOutletPowerStatus[];
+    outletPowerStatus: WattBoxOutletPowerMetrics[];
     batteryLevel?: number;
     powerLost?: boolean;
 }
@@ -122,21 +112,8 @@ export interface WattBoxEvents {
     deviceStatus: [deviceStatus: WattBoxDeviceStatus];
 }
 
-export enum WattBoxOutletAction {
-    OFF = 0,
-    ON = 1,
-    TOGGLE = 2,
-    RESET = 3
-}
-
 export enum WattBoxOutletStatus {
     UNKNOWN = -1,
     OFF = 0,
     ON = 1
-}
-
-export interface WattBoxOutletPowerStatus {
-    amps: number;
-    watts: number;
-    volts: number;
 }

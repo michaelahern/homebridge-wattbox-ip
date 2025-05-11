@@ -69,7 +69,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
                 .setCharacteristic(this.api.hap.Characteristic.SerialNumber, (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.serviceTag)
                 .setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.firmware);
 
-            if ((accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.upsConnection) {
+            if ((accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.upsConnected) {
                 if (!accessory.getService(this.api.hap.Service.Battery)) {
                     accessory.addService(this.api.hap.Service.Battery, 'UPS Battery Backup');
                 }
