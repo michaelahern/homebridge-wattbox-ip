@@ -61,7 +61,7 @@ Field           	             | Description
 **devices[].readOnlyOutlets**  | (optional) Array of outlet names to disable changing outlet state, useful for outlets you want to view the state of but not control via HomeKit
 **devices[].resetOnlyOutlets** | (optional) Array of outlet names to send reset (off+on) outlet state change actions instead of power off, useful for outlets that should never be powered off like critical network equipment
 **debug**                      | (optional) Enable debug logging, disabled by default
-**pollInterval**	             | (optional) Interval in seconds for polling the latest outlet status, default is 10s
+**pollInterval**	             | (optional) Interval in seconds for polling the outlet data, default is 20s
 
 ## Notes
 
