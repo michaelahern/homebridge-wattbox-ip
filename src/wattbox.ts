@@ -2,7 +2,7 @@ import { EventEmitter } from 'events';
 import { Logger } from 'homebridge';
 import { WattBoxClient, WattBoxError, WattBoxOutletAction, WattBoxOutletPowerMetrics, WattBoxUPSMetrics } from 'wattbox-api';
 
-export class WattBoxDeviceApi extends EventEmitter<WattBoxEvents> {
+export class WattBoxDevice extends EventEmitter<WattBoxDeviceEvents> {
     readonly #client: WattBoxClient;
     readonly #log: Logger;
     readonly #logDebug: boolean;
@@ -124,7 +124,7 @@ export interface WattBoxDeviceInfo {
     upsConnected: boolean;
 }
 
-export interface WattBoxEvents {
+export interface WattBoxDeviceEvents {
     outletStatus: [outletStatus: WattBoxOutletStatus[]];
     outletMetrics: [outletMetrics: WattBoxOutletPowerMetrics[]];
     upsMetrics: [upsMetrics: WattBoxUPSMetrics];

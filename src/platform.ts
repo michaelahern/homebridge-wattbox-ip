@@ -1,24 +1,24 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig } from 'homebridge';
 
 import { WattBoxConfig } from './config.js';
-import { WattBoxHomebridgeExtensions } from './homebridge.js';
+import { HomebridgeExtensions } from './homebridge.js';
 import { WattBoxPlatformAccessory, WattBoxPlatformAccessoryContext } from './platformAccessory.js';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
-import { WattBoxDeviceApi } from './wattbox.js';
+import { WattBoxDevice } from './wattbox.js';
 
 type WattBoxHomebridgePlatformConfig = PlatformConfig & WattBoxConfig;
 
 export class WattBoxPlatform implements DynamicPlatformPlugin {
     public readonly accessories: PlatformAccessory[] = [];
     public readonly config: WattBoxHomebridgePlatformConfig;
-    public readonly homebridgeExtensions: WattBoxHomebridgeExtensions;
+    public readonly homebridgeExtensions: HomebridgeExtensions;
 
-    constructor(public readonly log: Logger, public readonly platformConfig: PlatformConfig, public readonly api: API) {
-        this.config = this.platformConfig as WattBoxHomebridgePlatformConfig;
-        this.homebridgeExtensions = new WattBoxHomebridgeExtensions(this.api);
+    constructor(readonly log: Logger, platformConfig: PlatformConfig, readonly api: API) {
+        this.config = platformConfig as WattBoxHomebridgePlatformConfig;
+        this.homebridgeExtensions = new HomebridgeExtensions(this.api);
 
         this.api.on('didFinishLaunching', async () => {
-            await this.discoverDevices();
+            await this.#discoverDevices();
         });
     }
 
@@ -27,7 +27,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         this.accessories.push(accessory);
     }
 
-    private async discoverDevices() {
+    async #discoverDevices() {
         const discoveredAccessoryUUIDs = new Set<string>();
 
         for (const deviceConfig of this.config.devices) {
@@ -35,11 +35,11 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
             const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
             const accessory = existingAccessory ?? new this.api.platformAccessory(deviceConfig.name, uuid);
 
-            const deviceApi = new WattBoxDeviceApi(deviceConfig.host, deviceConfig.username, deviceConfig.password, this.log, this.config.debug ?? false, `[${accessory.displayName}]`);
+            const device = new WattBoxDevice(deviceConfig.host, deviceConfig.username, deviceConfig.password, this.log, this.config.debug ?? false, `[${accessory.displayName}]`);
 
             try {
-                await deviceApi.connect();
-                const deviceInfo = await deviceApi.getDeviceInfo();
+                await device.connect();
+                const deviceInfo = await device.getDeviceInfo();
 
                 if (deviceConfig.serviceTag != deviceInfo.serviceTag) {
                     this.log.warn(`[${accessory.displayName}] Service tag mismatch detected!`);
@@ -93,7 +93,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
                     continue;
                 }
 
-                new WattBoxPlatformAccessory(this, accessory, deviceApi, outletId, outletServiceId, outletName, outletIsReadOnly, outletIsResetOnly);
+                new WattBoxPlatformAccessory(this, accessory, device, outletId, outletServiceId, outletName, outletIsReadOnly, outletIsResetOnly);
             }
 
             if (existingAccessory) {
@@ -105,7 +105,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
 
             discoveredAccessoryUUIDs.add(uuid);
 
-            deviceApi.startPolling(this.config.pollInterval ?? 20);
+            device.startPolling(this.config.pollInterval ?? 20);
         }
 
         const orphanedAccessories = this.accessories.filter(accessory => !discoveredAccessoryUUIDs.has(accessory.UUID));

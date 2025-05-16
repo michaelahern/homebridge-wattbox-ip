@@ -3,19 +3,19 @@ import { WattBoxOutletAction } from 'wattbox-api';
 
 import { WattBoxDeviceConfig } from './config.js';
 import { WattBoxPlatform } from './platform.js';
-import { WattBoxDeviceApi, WattBoxDeviceInfo, WattBoxOutletStatus } from './wattbox.js';
+import { WattBoxDevice, WattBoxDeviceInfo, WattBoxOutletStatus } from './wattbox.js';
 
 export class WattBoxPlatformAccessory {
-    private readonly context: WattBoxPlatformAccessoryContext;
-    private readonly log: Logger;
-    private readonly logPrefix: string;
+    readonly context: WattBoxPlatformAccessoryContext;
+    readonly log: Logger;
+    readonly logPrefix: string;
 
-    private outletStatus = WattBoxOutletStatus.UNKNOWN;
-    private outletPowerAmps = 0;
-    private outletPowerWatts = 0;
-    private outletPowerVolts = 0;
+    #outletStatus = WattBoxOutletStatus.UNKNOWN;
+    #outletPowerAmps = 0;
+    #outletPowerWatts = 0;
+    #outletPowerVolts = 0;
 
-    constructor(private readonly platform: WattBoxPlatform, private readonly accessory: PlatformAccessory, private readonly deviceApi: WattBoxDeviceApi, private readonly outletId: number, private readonly outletServiceId: string, private readonly outletName: string, private readonly outletIsReadOnly: boolean, private readonly outletIsResetOnly: boolean) {
+    constructor(readonly platform: WattBoxPlatform, readonly accessory: PlatformAccessory, readonly device: WattBoxDevice, readonly outletId: number, readonly outletServiceId: string, readonly outletName: string, readonly outletIsReadOnly: boolean, readonly outletIsResetOnly: boolean) {
         this.context = this.accessory.context as WattBoxPlatformAccessoryContext;
         this.log = this.platform.log;
         this.logPrefix = `[${this.accessory.displayName}] [${this.outletId.toString().padStart(2)}]`;
@@ -45,42 +45,42 @@ export class WattBoxPlatformAccessory {
         }
 
         // On outlet status change...
-        this.deviceApi.on('outletStatus', (outletStatus) => {
+        this.device.on('outletStatus', (outletStatus) => {
             const newOutletStatus = outletStatus[this.outletId - 1];
 
-            if (WattBoxOutletStatus[this.outletStatus] != WattBoxOutletStatus[newOutletStatus]) {
-                this.log.info(`${this.logPrefix} ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
+            if (WattBoxOutletStatus[this.#outletStatus] != WattBoxOutletStatus[newOutletStatus]) {
+                this.log.info(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
             }
             else if (this.platform.config.debug) {
-                this.log.debug(`${this.logPrefix} ${WattBoxOutletStatus[this.outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
+                this.log.debug(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
             }
 
-            this.outletStatus = newOutletStatus;
-            outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!this.outletStatus);
+            this.#outletStatus = newOutletStatus;
+            outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!this.#outletStatus);
         });
 
         // On outlet power metrics change...
-        this.deviceApi.on('outletMetrics', (outletMetrics) => {
+        this.device.on('outletMetrics', (outletMetrics) => {
             const newOutletMetric = outletMetrics[this.outletId - 1];
 
             if (newOutletMetric && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)) {
-                this.outletPowerAmps = newOutletMetric.amps;
-                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps).updateValue(this.outletPowerAmps);
+                this.#outletPowerAmps = newOutletMetric.amps;
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps).updateValue(this.#outletPowerAmps);
             }
 
             if (newOutletMetric && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts)) {
-                this.outletPowerVolts = newOutletMetric.volts;
-                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts).updateValue(this.outletPowerVolts);
+                this.#outletPowerVolts = newOutletMetric.volts;
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Volts).updateValue(this.#outletPowerVolts);
             }
 
             if (newOutletMetric && outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts)) {
-                this.outletPowerWatts = newOutletMetric.watts;
-                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts).updateValue(this.outletPowerWatts);
+                this.#outletPowerWatts = newOutletMetric.watts;
+                outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Watts).updateValue(this.#outletPowerWatts);
             }
         });
 
         // On UPS metrics change...
-        this.deviceApi.on('upsMetrics', (upsMetrics) => {
+        this.device.on('upsMetrics', (upsMetrics) => {
             const batteryService = this.accessory.getService(this.platform.api.hap.Service.Battery);
 
             if (batteryService) {
@@ -93,23 +93,23 @@ export class WattBoxPlatformAccessory {
     }
 
     private getOutletStatus(): CharacteristicValue {
-        if (this.outletStatus === WattBoxOutletStatus.UNKNOWN) {
+        if (this.#outletStatus === WattBoxOutletStatus.UNKNOWN) {
             throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.NOT_ALLOWED_IN_CURRENT_STATE);
         }
 
-        return this.outletStatus === WattBoxOutletStatus.ON;
+        return this.#outletStatus === WattBoxOutletStatus.ON;
     }
 
     private getOutletPowerAmps(): CharacteristicValue {
-        return this.outletPowerAmps;
+        return this.#outletPowerAmps;
     }
 
     private getOutletPowerVolts(): CharacteristicValue {
-        return this.outletPowerVolts;
+        return this.#outletPowerVolts;
     }
 
     private getOutletPowerWatts(): CharacteristicValue {
-        return this.outletPowerWatts;
+        return this.#outletPowerWatts;
     }
 
     private async setOutletStatus(value: CharacteristicValue) {
@@ -122,8 +122,8 @@ export class WattBoxPlatformAccessory {
         this.log.info(`${this.logPrefix} ->${WattBoxOutletAction[action]}`);
 
         try {
-            await this.deviceApi.setOutletAction(this.outletId, action);
-            this.outletStatus = value ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF;
+            await this.device.setOutletAction(this.outletId, action);
+            this.#outletStatus = value ? WattBoxOutletStatus.ON : WattBoxOutletStatus.OFF;
         }
         catch (err) {
             if (err instanceof Error) {
