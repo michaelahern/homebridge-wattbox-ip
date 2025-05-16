@@ -6,19 +6,19 @@ import { WattBoxPlatform } from './platform.js';
 import { WattBoxDevice, WattBoxDeviceInfo, WattBoxOutletStatus } from './wattbox.js';
 
 export class WattBoxPlatformAccessory {
-    readonly #context: WattBoxPlatformAccessoryContext;
-    readonly #log: Logger;
-    readonly #logPrefix: string;
+    readonly context: WattBoxPlatformAccessoryContext;
+    readonly log: Logger;
+    readonly logPrefix: string;
 
     #outletStatus = WattBoxOutletStatus.UNKNOWN;
     #outletPowerAmps = 0;
     #outletPowerWatts = 0;
     #outletPowerVolts = 0;
 
-    constructor(private readonly platform: WattBoxPlatform, private readonly accessory: PlatformAccessory, private readonly device: WattBoxDevice, private readonly outletId: number, private readonly outletServiceId: string, private readonly outletName: string, private readonly outletIsReadOnly: boolean, private readonly outletIsResetOnly: boolean) {
-        this.#context = this.accessory.context as WattBoxPlatformAccessoryContext;
-        this.#log = this.platform.log;
-        this.#logPrefix = `[${this.accessory.displayName}] [${this.outletId.toString().padStart(2)}]`;
+    constructor(readonly platform: WattBoxPlatform, readonly accessory: PlatformAccessory, readonly device: WattBoxDevice, readonly outletId: number, readonly outletServiceId: string, readonly outletName: string, readonly outletIsReadOnly: boolean, readonly outletIsResetOnly: boolean) {
+        this.context = this.accessory.context as WattBoxPlatformAccessoryContext;
+        this.log = this.platform.log;
+        this.logPrefix = `[${this.accessory.displayName}] [${this.outletId.toString().padStart(2)}]`;
 
         const outletDisplayName = `${this.outletId} ${this.outletName}`;
         const outletService = (this.accessory.getServiceById(this.platform.api.hap.Service.Outlet, this.outletServiceId) ?? this.accessory.addService(this.platform.api.hap.Service.Outlet, outletDisplayName, this.outletServiceId))
@@ -30,7 +30,7 @@ export class WattBoxPlatformAccessory {
             .onSet(this.setOutletStatus.bind(this));
 
         // Outlet power metrics on WB-800 series only...
-        if (this.#context.deviceInfo.model.startsWith('WB-8')) {
+        if (this.context.deviceInfo.model.startsWith('WB-8')) {
             outletService.addOptionalCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps);
             outletService.getCharacteristic(this.platform.homebridgeExtensions.Characteristic.Amps)
                 .onGet(this.getOutletPowerAmps.bind(this));
@@ -49,10 +49,10 @@ export class WattBoxPlatformAccessory {
             const newOutletStatus = outletStatus[this.outletId - 1];
 
             if (WattBoxOutletStatus[this.#outletStatus] != WattBoxOutletStatus[newOutletStatus]) {
-                this.#log.info(`${this.#logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
+                this.log.info(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
             }
             else if (this.platform.config.debug) {
-                this.#log.debug(`${this.#logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
+                this.log.debug(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
             }
 
             this.#outletStatus = newOutletStatus;
@@ -114,12 +114,12 @@ export class WattBoxPlatformAccessory {
 
     private async setOutletStatus(value: CharacteristicValue) {
         if (this.outletIsReadOnly) {
-            this.#log.info(`${this.#logPrefix} ->NOOP`);
+            this.log.info(`${this.logPrefix} ->NOOP`);
             throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.READ_ONLY_CHARACTERISTIC);
         }
 
         const action = this.outletIsResetOnly ? WattBoxOutletAction.RESET : (value ? WattBoxOutletAction.ON : WattBoxOutletAction.OFF);
-        this.#log.info(`${this.#logPrefix} ->${WattBoxOutletAction[action]}`);
+        this.log.info(`${this.logPrefix} ->${WattBoxOutletAction[action]}`);
 
         try {
             await this.device.setOutletAction(this.outletId, action);
@@ -127,7 +127,7 @@ export class WattBoxPlatformAccessory {
         }
         catch (err) {
             if (err instanceof Error) {
-                this.#log.error(`${this.#logPrefix} ->${WattBoxOutletAction[action]} (${err.message})`);
+                this.log.error(`${this.logPrefix} ->${WattBoxOutletAction[action]} (${err.message})`);
             }
 
             throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);

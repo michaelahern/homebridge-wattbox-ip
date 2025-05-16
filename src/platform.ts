@@ -13,8 +13,8 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
     public readonly config: WattBoxHomebridgePlatformConfig;
     public readonly homebridgeExtensions: HomebridgeExtensions;
 
-    constructor(public readonly log: Logger, public readonly platformConfig: PlatformConfig, public readonly api: API) {
-        this.config = this.platformConfig as WattBoxHomebridgePlatformConfig;
+    constructor(readonly log: Logger, platformConfig: PlatformConfig, readonly api: API) {
+        this.config = platformConfig as WattBoxHomebridgePlatformConfig;
         this.homebridgeExtensions = new HomebridgeExtensions(this.api);
 
         this.api.on('didFinishLaunching', async () => {
