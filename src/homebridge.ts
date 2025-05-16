@@ -1,6 +1,6 @@
 import { API, Characteristic, Formats, Perms, WithUUID } from 'homebridge';
 
-export class WattBoxHomebridgeExtensions {
+export class HomebridgeExtensions {
     private static readonly AMPS_NAME = 'Amps';
     private static readonly AMPS_UUID = 'E863F126-079E-48FF-8F27-9C2605A29F52';
 
@@ -17,11 +17,11 @@ export class WattBoxHomebridgeExtensions {
     constructor(api: API) {
         this.api = api;
 
-        this.Characteristic[WattBoxHomebridgeExtensions.AMPS_NAME] = class extends this.api.hap.Characteristic {
-            static readonly UUID: string = WattBoxHomebridgeExtensions.AMPS_UUID;
+        this.Characteristic[HomebridgeExtensions.AMPS_NAME] = class extends this.api.hap.Characteristic {
+            static readonly UUID: string = HomebridgeExtensions.AMPS_UUID;
 
             constructor() {
-                super(WattBoxHomebridgeExtensions.AMPS_NAME, WattBoxHomebridgeExtensions.AMPS_UUID, {
+                super(HomebridgeExtensions.AMPS_NAME, HomebridgeExtensions.AMPS_UUID, {
                     format: Formats.FLOAT,
                     perms: [Perms.NOTIFY, Perms.PAIRED_READ],
                     unit: 'A',
@@ -33,11 +33,11 @@ export class WattBoxHomebridgeExtensions {
             }
         };
 
-        this.Characteristic[WattBoxHomebridgeExtensions.VOLTS_NAME] = class extends this.api.hap.Characteristic {
-            static readonly UUID: string = WattBoxHomebridgeExtensions.VOLTS_UUID;
+        this.Characteristic[HomebridgeExtensions.VOLTS_NAME] = class extends this.api.hap.Characteristic {
+            static readonly UUID: string = HomebridgeExtensions.VOLTS_UUID;
 
             constructor() {
-                super(WattBoxHomebridgeExtensions.VOLTS_NAME, WattBoxHomebridgeExtensions.VOLTS_UUID, {
+                super(HomebridgeExtensions.VOLTS_NAME, HomebridgeExtensions.VOLTS_UUID, {
                     format: Formats.FLOAT,
                     perms: [Perms.NOTIFY, Perms.PAIRED_READ],
                     unit: 'V',
@@ -49,11 +49,11 @@ export class WattBoxHomebridgeExtensions {
             }
         };
 
-        this.Characteristic[WattBoxHomebridgeExtensions.WATTS_NAME] = class extends this.api.hap.Characteristic {
-            static readonly UUID: string = WattBoxHomebridgeExtensions.WATTS_UUID;
+        this.Characteristic[HomebridgeExtensions.WATTS_NAME] = class extends this.api.hap.Characteristic {
+            static readonly UUID: string = HomebridgeExtensions.WATTS_UUID;
 
             constructor() {
-                super(WattBoxHomebridgeExtensions.WATTS_NAME, WattBoxHomebridgeExtensions.WATTS_UUID, {
+                super(HomebridgeExtensions.WATTS_NAME, HomebridgeExtensions.WATTS_UUID, {
                     format: Formats.FLOAT,
                     perms: [Perms.NOTIFY, Perms.PAIRED_READ],
                     unit: 'W',
