@@ -18,7 +18,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         this.homebridgeExtensions = new HomebridgeExtensions(this.api);
 
         this.api.on('didFinishLaunching', async () => {
-            await this.discoverDevices();
+            await this.#discoverDevices();
         });
     }
 
@@ -27,7 +27,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
         this.accessories.push(accessory);
     }
 
-    private async discoverDevices() {
+    async #discoverDevices() {
         const discoveredAccessoryUUIDs = new Set<string>();
 
         for (const deviceConfig of this.config.devices) {
