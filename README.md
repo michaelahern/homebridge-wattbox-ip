@@ -4,9 +4,7 @@
 [![npm](https://badgen.net/npm/v/homebridge-wattbox-ip)](https://www.npmjs.com/package/homebridge-wattbox-ip)
 [![node](https://badgen.net/npm/node/homebridge-wattbox-ip)](https://www.npmjs.com/package/homebridge-wattbox-ip)
 [![downloads](https://badgen.net/npm/dt/homebridge-wattbox-ip)](https://www.npmjs.com/package/homebridge-wattbox-ip)
-[![npm](https://badgen.net/npm/v/homebridge-wattbox-ip/alpha)](https://www.npmjs.com/package/homebridge-wattbox-ip/v/alpha)
-[![node](https://badgen.net/npm/node/homebridge-wattbox-ip/alpha)](https://www.npmjs.com/package/homebridge-wattbox-ip/v/alpha)
-[![Build](https://github.com/michaelahern/homebridge-wattbox-ip/actions/workflows/build.yml/badge.svg)](https://github.com/michaelahern/homebridge-wattbox-ip/actions/workflows/build.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/michaelahern/homebridge-wattbox-ip)
 
 A [Homebridge](https://homebridge.io) plugin for [WattBox IP Power](https://www.snapav.com/shop/en/snapav/wattbox-ip-power) devices.
 
@@ -67,4 +65,4 @@ Field           	             | Description
 
 ## Notes
 
- * Outlet power status (e.g. Amps/Current, Voltage, Watts/Consumption) are not visible in the Apple Home app, but are visible within some third-party HomeKit apps, including [Eve](https://www.evehome.com/en-us/eve-app) and [Home+](https://hochgatterer.me/home+/).
+ * Outlet power metrics (e.g. Amps/Current, Voltage, Watts/Consumption) are not visible in the Apple Home app, but are visible within some third-party HomeKit apps, including [Eve](https://www.evehome.com/en-us/eve-app) and [Home+](https://hochgatterer.me/home+/).
