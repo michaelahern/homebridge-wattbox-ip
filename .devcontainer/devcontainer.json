@@ -5,16 +5,18 @@
     "ghcr.io/devcontainers-extra/features/wireguard-apt-get:1": {}
   },
   "onCreateCommand": {
-    "homebridge-install": "sudo npm install -g --unsafe-perm homebridge homebridge-config-ui-x",
     "iputils-install": "sudo apt-get update && sudo apt-get install -y iputils-ping traceroute"
   },
   "updateContentCommand": {
+    "homebridge-install": "npm install -g homebridge homebridge-config-ui-x",
     "npm-install": "npm install"
   },
   "postCreateCommand": {
     "homebridge-config": ".devcontainer/postcreate.sh"
   },
   "postStartCommand": {
+    "npm-build": "npm run build",
+    "npm-link": "npm link",
     "tailscale-up": "[ -n \"${TS_AUTH_KEY}\" ] && sudo tailscale up --accept-routes --auth-key=$TS_AUTH_KEY"
   },
   "portsAttributes": {
