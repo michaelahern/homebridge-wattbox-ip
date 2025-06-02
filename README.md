@@ -19,7 +19,7 @@ A [Homebridge](https://homebridge.io) plugin for [WattBox IP Power](https://www.
 - WB-250 Series
 - WB-150 Series
 
-_Note: This plugin implements the more recent WattBox Integration Protocol used by the above series devices. For WB-700 and WB-300 series devices, take a look at [homebridge-wattbox](https://github.com/derek-miller/homebridge-wattbox)._
+_Note: This plugin implements the more recent WattBox Integration Protocol used by the above series devices. For WB-700 and WB-300 series devices, take a look at [homebridge-wattbox](https://github.com/homebridge-plugins/homebridge-wattbox)._
 
 ## Configuration
 
