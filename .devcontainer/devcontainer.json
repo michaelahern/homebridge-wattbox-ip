@@ -4,6 +4,15 @@
     "ghcr.io/tailscale/codespace/tailscale": {},
     "ghcr.io/devcontainers-extra/features/wireguard-apt-get:1": {}
   },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bierner.markdown-preview-github-styles",
+        "dbaeumer.vscode-eslint",
+        "github.vscode-github-actions"
+      ]
+    }
+  },
   "onCreateCommand": {
     "iputils-install": "sudo apt-get update && sudo apt-get install -y iputils-ping traceroute"
   },
