@@ -35,7 +35,7 @@
     "url": "git://github.com/michaelahern/homebridge-wattbox-ip.git"
   },
   "scripts": {
-    "build": "npm run clean && npm run lint && tsc",
+    "build": "npm run lint && tsc",
     "clean": "rimraf ./dist",
     "homebridge": "homebridge -C -D -I 2>&1 | tee ~/.homebridge/homebridge.log",
     "lint": "eslint src/**/*.ts --max-warnings=0",
@@ -46,7 +46,7 @@
     "wattbox-api": "^1"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^4",
+    "@stylistic/eslint-plugin": "^5",
     "@types/node": "^20",
     "eslint": "^9",
     "homebridge": "~1.9",
