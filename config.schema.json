@@ -111,7 +111,9 @@
               "name": "Excluded Outlets",
               "orderable": false,
               "buttonText": "Add Excluded Outlet",
-              "items": ["devices[].excludedOutlets[]"]
+              "items": [
+                "devices[].excludedOutlets[]"
+              ]
             },
             {
               "key": "devices[].readOnlyOutlets",
@@ -119,7 +121,9 @@
               "name": "Read Only Outlets",
               "orderable": false,
               "buttonText": "Add Read Only Outlet",
-              "items": ["devices[].readOnlyOutlets[]"]
+              "items": [
+                "devices[].readOnlyOutlets[]"
+              ]
             },
             {
               "key": "devices[].resetOnlyOutlets",
@@ -127,7 +131,9 @@
               "name": "Reset Only Outlets",
               "orderable": false,
               "buttonText": "Add Reset Only Outlet",
-              "items": ["devices[].resetOnlyOutlets[]"]
+              "items": [
+                "devices[].resetOnlyOutlets[]"
+              ]
             }
           ]
         }
