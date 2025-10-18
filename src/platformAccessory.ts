@@ -46,7 +46,7 @@ export class WattBoxPlatformAccessory {
 
         // On outlet status change...
         this.device.on('outletStatus', (outletStatus) => {
-            const newOutletStatus = outletStatus[this.outletId - 1];
+            const newOutletStatus = outletStatus[this.outletId - 1] ?? WattBoxOutletStatus.UNKNOWN;
 
             if (WattBoxOutletStatus[this.#outletStatus] != WattBoxOutletStatus[newOutletStatus]) {
                 this.log.info(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
