@@ -17,7 +17,7 @@
     "iputils-install": "sudo apt-get update && sudo apt-get install -y iputils-ping traceroute"
   },
   "updateContentCommand": {
-    "homebridge-install": "npm install -g homebridge homebridge-config-ui-x",
+    "homebridge-install": "npm install -g homebridge@1.11.1 homebridge-config-ui-x@5.12.0",
     "npm-install": "npm install"
   },
   "postCreateCommand": {
