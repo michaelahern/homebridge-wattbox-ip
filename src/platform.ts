@@ -77,7 +77,7 @@ export class WattBoxPlatform implements DynamicPlatformPlugin {
 
             for (let i = 0; i < (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.outletNames.length; i++) {
                 const outletId = i + 1;
-                const outletName = (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.outletNames[i];
+                const outletName = (accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.outletNames[i] ?? 'Unknown';
                 const outletServiceId = `${(accessory.context as WattBoxPlatformAccessoryContext).deviceInfo.serviceTag}:${outletId}`;
                 const outletIsExcluded = (deviceConfig.excludedOutlets?.includes(outletName)) ?? false;
                 const outletIsReadOnly = (deviceConfig.readOnlyOutlets?.includes(outletName)) ?? false;
