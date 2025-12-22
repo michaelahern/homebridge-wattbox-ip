@@ -48,15 +48,17 @@ export class WattBoxPlatformAccessory {
         this.device.on('outletStatus', (outletStatus) => {
             const newOutletStatus = outletStatus[this.outletId - 1];
 
-            if (WattBoxOutletStatus[this.#outletStatus] != WattBoxOutletStatus[newOutletStatus]) {
-                this.log.info(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
-            }
-            else if (this.platform.config.debug) {
-                this.log.debug(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
-            }
+            if (newOutletStatus) {
+                if (WattBoxOutletStatus[this.#outletStatus] != WattBoxOutletStatus[newOutletStatus]) {
+                    this.log.info(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
+                }
+                else if (this.platform.config.debug) {
+                    this.log.debug(`${this.logPrefix} ${WattBoxOutletStatus[this.#outletStatus]}->${WattBoxOutletStatus[newOutletStatus]}`);
+                }
 
-            this.#outletStatus = newOutletStatus;
-            outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!this.#outletStatus);
+                this.#outletStatus = newOutletStatus;
+                outletService.getCharacteristic(this.platform.api.hap.Characteristic.On).updateValue(!!this.#outletStatus);
+            }
         });
 
         // On outlet power metrics change...

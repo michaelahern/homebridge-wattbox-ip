@@ -12,12 +12,16 @@ export class HomebridgeExtensions {
 
     private readonly api: API;
 
-    public Characteristic: Record<string, WithUUID<new() => Characteristic>> = {};
-
     constructor(api: API) {
         this.api = api;
+    }
 
-        this.Characteristic[HomebridgeExtensions.#AMPS_NAME] = class extends this.api.hap.Characteristic {
+    public Characteristic: {
+        Amps: WithUUID<new() => Characteristic>;
+        Volts: WithUUID<new() => Characteristic>;
+        Watts: WithUUID<new() => Characteristic>;
+    } = {
+        Amps: class extends this.api.hap.Characteristic {
             static readonly UUID: string = HomebridgeExtensions.#AMPS_UUID;
 
             constructor() {
@@ -31,9 +35,8 @@ export class HomebridgeExtensions {
                 });
                 this.value = this.getDefaultValue();
             }
-        };
-
-        this.Characteristic[HomebridgeExtensions.#VOLTS_NAME] = class extends this.api.hap.Characteristic {
+        },
+        Volts: class extends this.api.hap.Characteristic {
             static readonly UUID: string = HomebridgeExtensions.#VOLTS_UUID;
 
             constructor() {
@@ -47,9 +50,8 @@ export class HomebridgeExtensions {
                 });
                 this.value = this.getDefaultValue();
             }
-        };
-
-        this.Characteristic[HomebridgeExtensions.#WATTS_NAME] = class extends this.api.hap.Characteristic {
+        },
+        Watts: class extends this.api.hap.Characteristic {
             static readonly UUID: string = HomebridgeExtensions.#WATTS_UUID;
 
             constructor() {
@@ -63,6 +65,6 @@ export class HomebridgeExtensions {
                 });
                 this.value = this.getDefaultValue();
             }
-        };
-    }
+        }
+    };
 }
