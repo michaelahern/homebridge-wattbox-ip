@@ -12,59 +12,61 @@ export class HomebridgeExtensions {
 
     private readonly api: API;
 
-    constructor(api: API) {
-        this.api = api;
-    }
-
     public Characteristic: {
         Amps: WithUUID<new() => Characteristic>;
         Volts: WithUUID<new() => Characteristic>;
         Watts: WithUUID<new() => Characteristic>;
-    } = {
-        Amps: class extends this.api.hap.Characteristic {
-            static readonly UUID: string = HomebridgeExtensions.#AMPS_UUID;
-
-            constructor() {
-                super(HomebridgeExtensions.#AMPS_NAME, HomebridgeExtensions.#AMPS_UUID, {
-                    format: Formats.FLOAT,
-                    perms: [Perms.NOTIFY, Perms.PAIRED_READ],
-                    unit: 'A',
-                    minValue: 0,
-                    maxValue: 640,
-                    minStep: 0.01
-                });
-                this.value = this.getDefaultValue();
-            }
-        },
-        Volts: class extends this.api.hap.Characteristic {
-            static readonly UUID: string = HomebridgeExtensions.#VOLTS_UUID;
-
-            constructor() {
-                super(HomebridgeExtensions.#VOLTS_NAME, HomebridgeExtensions.#VOLTS_UUID, {
-                    format: Formats.FLOAT,
-                    perms: [Perms.NOTIFY, Perms.PAIRED_READ],
-                    unit: 'V',
-                    minValue: 0,
-                    maxValue: 640,
-                    minStep: 0.1
-                });
-                this.value = this.getDefaultValue();
-            }
-        },
-        Watts: class extends this.api.hap.Characteristic {
-            static readonly UUID: string = HomebridgeExtensions.#WATTS_UUID;
-
-            constructor() {
-                super(HomebridgeExtensions.#WATTS_NAME, HomebridgeExtensions.#WATTS_UUID, {
-                    format: Formats.FLOAT,
-                    perms: [Perms.NOTIFY, Perms.PAIRED_READ],
-                    unit: 'W',
-                    minValue: 0,
-                    maxValue: 6400,
-                    minStep: 0.1
-                });
-                this.value = this.getDefaultValue();
-            }
-        }
     };
+
+    constructor(api: API) {
+        this.api = api;
+
+        this.Characteristic = {
+            Amps: class extends this.api.hap.Characteristic {
+                static readonly UUID: string = HomebridgeExtensions.#AMPS_UUID;
+
+                constructor() {
+                    super(HomebridgeExtensions.#AMPS_NAME, HomebridgeExtensions.#AMPS_UUID, {
+                        format: Formats.FLOAT,
+                        perms: [Perms.NOTIFY, Perms.PAIRED_READ],
+                        unit: 'A',
+                        minValue: 0,
+                        maxValue: 640,
+                        minStep: 0.01
+                    });
+                    this.value = this.getDefaultValue();
+                }
+            },
+            Volts: class extends this.api.hap.Characteristic {
+                static readonly UUID: string = HomebridgeExtensions.#VOLTS_UUID;
+
+                constructor() {
+                    super(HomebridgeExtensions.#VOLTS_NAME, HomebridgeExtensions.#VOLTS_UUID, {
+                        format: Formats.FLOAT,
+                        perms: [Perms.NOTIFY, Perms.PAIRED_READ],
+                        unit: 'V',
+                        minValue: 0,
+                        maxValue: 640,
+                        minStep: 0.1
+                    });
+                    this.value = this.getDefaultValue();
+                }
+            },
+            Watts: class extends this.api.hap.Characteristic {
+                static readonly UUID: string = HomebridgeExtensions.#WATTS_UUID;
+
+                constructor() {
+                    super(HomebridgeExtensions.#WATTS_NAME, HomebridgeExtensions.#WATTS_UUID, {
+                        format: Formats.FLOAT,
+                        perms: [Perms.NOTIFY, Perms.PAIRED_READ],
+                        unit: 'W',
+                        minValue: 0,
+                        maxValue: 6400,
+                        minStep: 0.1
+                    });
+                    this.value = this.getDefaultValue();
+                }
+            }
+        };
+    }
 }
