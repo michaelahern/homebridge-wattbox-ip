@@ -1,5 +1,5 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24",
   "features": {
     "ghcr.io/tailscale/codespace/tailscale": {},
     "ghcr.io/devcontainers-extra/features/wireguard-apt-get:1": {}
@@ -17,7 +17,7 @@
     "iputils-install": "sudo apt-get update && sudo apt-get install -y iputils-ping traceroute"
   },
   "updateContentCommand": {
-    "homebridge-install": "npm install -g homebridge@1.11.1 homebridge-config-ui-x@5.12.0",
+    "homebridge-install": "npm install -g homebridge@1.11.4 homebridge-config-ui-x@5.21.0",
     "npm-install": "npm install"
   },
   "postCreateCommand": {
